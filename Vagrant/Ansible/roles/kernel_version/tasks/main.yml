@@ -1,0 +1,25 @@
+---
+- name: Check and print OS Version
+  debug:
+    var: ansible_os_family
+
+- name: generate /etc/hosts file for all hosts from host.ini file
+  template:
+    src: "templates/hosts.j2"
+    dest: "/etc/hosts"
+    mode: 0644
+
+- block:    #================= Block REDHAT =================
+  - name: Display OS Version, family and Kernel when family is RedHat
+    debug:
+      msg: "OS Version is {{ ansible_os_family }} {{ ansible_distribution_major_version }} and Kernel Version is {{ ansible_kernel }}"
+    
+    when: ansible_os_family == "RedHat"
+
+
+- block:    #================= Block DEBIAN =================
+  - name: Display OS Version, family and Kernel when family is Debian
+    debug:
+      msg: "OS Version is {{ ansible_os_family }} {{ ansible_distribution_major_version }} and Kernel Version is {{ ansible_kernel }}"
+  
+    when: ansible_os_family == "Debian"

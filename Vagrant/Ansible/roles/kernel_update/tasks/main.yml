@@ -1,0 +1,75 @@
+---
+- name: Check and print OS Version
+  debug:
+    var: ansible_os_family
+
+
+- block:    #================= Block REDHAT =================
+  - name: Install plugin yum-plugin-fastestmirror
+    yum:
+      name: yum-plugin-fastestmirror
+      state: present
+
+  - name: Check if the package is installed
+    yum:
+      list: elrepo-release
+    register: yum_package_info
+
+  - name: Connect elrepo-release repository
+    command: yum install -y {{ repo }}
+#    when: yum_package_info.results[0].name != "elrepo-release"
+
+  - name: Install kernel-ml from elrepo-kernel repository
+    command: yum --enablerepo elrepo-kernel install kernel-ml -y
+
+  - name: Update grub config
+    command: grub2-mkconfig -o /boot/grub2/grub.cfg
+
+  - name: Booting from new kernel
+    command: grub2-set-default 0
+
+  - name: Reboot the server
+    shell: sleep 3 && shutdown -r now "Rebooting from Ansible"
+    async: 1
+    poll: 0
+
+  - name: Wait until server is reachable again
+    wait_for:
+      state: started
+      host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+      delay: 5
+      timeout: 40
+    become: false
+    delegate_to: localhost
+
+  when: ansible_os_family == "RedHat"
+
+
+- block:    #================= Block DEBIAN =================
+  - name: Connect elrepo-release repository
+    command: add-apt-repository ppa:cappelikan/ppa -y
+    notify: apt update
+  
+  - name: Install mainline kernel
+    apt:
+      name: mainline
+      state: present
+
+  - name: Install the latest mainline kernel
+    command: mainline install-latest
+
+  - name: Reboot the server
+    shell: sleep 3 && shutdown -r now "Rebooting from Ansible"
+    async: 1
+    poll: 0
+
+  - name: Wait until server is reachable again
+    wait_for:
+      state: started
+      host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+      delay: 5
+      timeout: 40
+    become: false
+    delegate_to: localhost
+
+  when: ansible_os_family == "Debian"

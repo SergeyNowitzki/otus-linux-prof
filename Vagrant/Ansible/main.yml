@@ -1,0 +1,8 @@
+---
+- hosts: all
+  name: Vagrant VMs kernel check, update and create image
+  become: true
+
+  roles:
+    - { role: kernel_version, when: ansible_system == 'Linux', tags: tag1 }
+    - { role: kernel_update, tags: tag2 }
