@@ -1,20 +1,14 @@
 # otus-linux-proffesional
 ## TASK 2 Ansible automation - Deploing NGINX on VMs
 Before proceeding with the tasks, ensure that you have prepared the environment to work with Vagrant and Ansible.
-Please make sure you have completed all necessary steps described in the hometask refference:
-https://docs.google.com/document/d/1fZUXL30bDhJEQpDQgtfv3Nj4WYWto98AaYlC1vJ2LkQ/edit
-
-Python 3.9.18
-
+After cloning the repository, install all necessary packages:
+```
 pip install -r requirements.txt
-
-
-Add the private network to the virtual box and choose the necessary subnet, e.g:
-<img width="1102" alt="Screenshot 2024-01-22 at 01 14 57" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/9a367d30-de22-48b0-9da1-de4d772c8e85">
-
+```
+Python version of the project is 3.9.18
 
 ### Vagrant Configuration
-1. After cloning the repository, modify the variables in the `Vagrantfile` to your desired values.
+1. Modify the variables in the `Vagrantfile` to your desired values.
    
    - Add the path to your SSH public key which will be used for connecting to servers via SSH:
      ```
@@ -38,81 +32,115 @@ Add the private network to the virtual box and choose the necessary subnet, e.g:
      ```
 
 2. After configuring the `Vagrantfile`, run: `vagrant up`
-<img width="1079" alt="Screenshot 2024-01-22 at 01 15 38" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/1633308c-b227-45ce-9126-951e34becb12">
-
-
    - Once VMs are installed, connect to them via SSH:
      ```
      vagrant ssh centos-vm-1
      vagrant ssh ubutnu-vm-1
      ```
 
-   - Display the current kernel version: `uname -r`:
-     ```
-     vagrant@ubuntu-vm-1:~$ uname -r
-     5.4.0-167-generic
-
-     [vagrant@centos-vm-1 ~]$ uname -r
-     3.10.0-1127.el7.x86_64
-     ```
-
 ### Ansible Configuration
-1. Navigate to the Ansible folder: `cd Ansible`
-2. Ensure the IP addresses in the file `inventories/hosts.ini` are correct.
-3. Set Python interpreter `ansible_python_interpreter` and private SSH key `private_key_file` according to your location.
-4. Check connectivity with Ansible:
-```
-ansible all -m ping
-centos-vm-1 | SUCCESS => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/usr/bin/python"
-    },
-    "changed": false,
-    "ping": "pong"
-}
-ubuntu-vm-1 | SUCCESS => {
-    "ansible_facts": {
-        "discovered_interpreter_python": "/usr/bin/python3"
-    },
-    "changed": false,
-    "ping": "pong"
-}
-```
-The result should be `SUCCESS` for both VMs.
-5. Execute Ansible playbooks:
-playbook will generate `/etc/hosts` files and check the curent kernel versions of the servers:
-```
-ansible-playbook main.yml --tags tag1
+1. Navigate to the Ansible folder: `cd Ansible`. The directory contains the folowing files and folders:
+    ```
+    ├── ansible.cfg
+    ├── files
+    │   └── otus.png
+    ├── inventories
+    │   └── hosts.ini
+    ├── playbook_nginx_inst.yml
+    └── templates
+        ├── hosts.j2
+        ├── index.j2
+        └── nginx.j2
+    ```
+2. Ensure the IP addresses in the file `inventories/hosts.ini` are correct. It also contains variable which are used for generationg `index.html` and `nginx.conf`, e.g. `listen_port=8080` is used to define a virtual server port.
+3. Set Python interpreter `ansible_python_interpreter` and private SSH key `private_key_file` according to your location in `ansible.cfg`.
+4. `files` directory is supposed to contain web-page content, e.g. in our case it is picture `otus.png`
+5. There are jinja templates in the `templates` directory for generating `/etc/hosts`, `index.html` and `nginx.conf` files based on defined variables. 
 
-TASK [kernel_version : Display OS Version, family and Kernel when family is RedHat] ********************************************************************************************************************************
+### Ansible NGINX servers configuration
+1. Execute Ansible playbook `ansible-playbook playbook_nginx_inst.yml`:
+```
+PLAY [Installation NGINX Web Server] *********************************************************************************************************************
+
+TASK [Gathering Facts] ***********************************************************************************************************************************
+ok: [centos-vm-1]
+ok: [ubuntu-vm-1]
+
+TASK [Check and print OS Version] ************************************************************************************************************************
 ok: [centos-vm-1] => {
-    "msg": "OS Version is RedHat 7 and Kernel Version is 3.10.0-1127.el7.x86_64"
+    "ansible_os_family": "RedHat"
 }
-
-TASK [kernel_version : Display OS Version, family and Kernel when family is Debian] ********************************************************************************************************************************
 ok: [ubuntu-vm-1] => {
-    "msg": "OS Version is Debian 20 and Kernel Version is 5.4.0-167-generic"
+    "ansible_os_family": "Debian"
 }
-```
-The kernel versions on the fresh installed VMs centos-vm-1 and ubuntu-vm-1 are 3.10.0-1127.el7.x86_64 and 5.4.0-167-generic respectively.
 
-6. The second playbook will update kernels and reboot the VMS:
+TASK [generate /etc/hosts file for all hosts from host.ini file] *****************************************************************************************
+ok: [ubuntu-vm-1]
+ok: [centos-vm-1]
+
+TASK [Create a directory if it does not exist] ***********************************************************************************************************
+ok: [ubuntu-vm-1]
+ok: [centos-vm-1]
+
+TASK [Install NGINX Web Server for Debian Family] ********************************************************************************************************
+skipping: [centos-vm-1]
+ok: [ubuntu-vm-1]
+
+TASK [Start NGINX Web Server and Enabel it on boot for Debian Family] ************************************************************************************
+skipping: [centos-vm-1]
+ok: [ubuntu-vm-1]
+
+TASK [Install epel-release] ******************************************************************************************************************************
+skipping: [ubuntu-vm-1]
+ok: [centos-vm-1]
+
+TASK [Install NGINX Web Server for RedHat Family] ********************************************************************************************************
+skipping: [ubuntu-vm-1]
+ok: [centos-vm-1]
+
+TASK [Adding group www-data] *****************************************************************************************************************************
+skipping: [ubuntu-vm-1]
+ok: [centos-vm-1]
+
+TASK [Adding user www-data] ******************************************************************************************************************************
+skipping: [ubuntu-vm-1]
+ok: [centos-vm-1]
+
+TASK [Start Apache Web Server and Enabel it on boot for Debian Family] ***********************************************************************************
+skipping: [ubuntu-vm-1]
+ok: [centos-vm-1]
+
+TASK [generate index.htlm] *******************************************************************************************************************************
+ok: [ubuntu-vm-1]
+changed: [centos-vm-1]
+
+TASK [generate nginx.conf file for all hosts from host.ini file] *****************************************************************************************
+ok: [ubuntu-vm-1]
+changed: [centos-vm-1]
+
+TASK [Copy files to /var/www/html] ***********************************************************************************************************************
+ok: [ubuntu-vm-1] => (item=otus.png)
+ok: [centos-vm-1] => (item=otus.png)
+
+RUNNING HANDLER [Restart NGINX RedHat] *******************************************************************************************************************
+changed: [centos-vm-1]
+
+RUNNING HANDLER [Restart NGINX Debian] *******************************************************************************************************************
+skipping: [centos-vm-1]
+
+PLAY RECAP ***********************************************************************************************************************************************
+centos-vm-1                : ok=13   changed=3    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0   
+ubuntu-vm-1                : ok=9    changed=0    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0   
+```
+2. After all tasks of the playbook have been successfuly executed the nginx server will be installed and configured on the severs according to OS system
 ```
 LAY RECAP *********************************************************************************************************************************************************************************************************
 centos-vm-1                : ok=10   changed=5    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0   
 ubuntu-vm-1                : ok=8    changed=4    unreachable=0    failed=0    skipped=8    rescued=0    ignored=0   
 ```
-7. After all tasks of the second playbook have been successfuly executed the first playbook can be used to verify that the kernels have been updated successfully:
-```
-TASK [kernel_version : Display OS Version, family and Kernel when family is RedHat] ********************************************************************************************************************************
-ok: [centos-vm-1] => {
-    "msg": "OS Version is RedHat 7 and Kernel Version is 6.6.9-1.el7.elrepo.x86_64"
-}
-TASK [kernel_version : Display OS Version, family and Kernel when family is Debian] ********************************************************************************************************************************
-skipping: [centos-vm-1]
-ok: [ubuntu-vm-1] => {
-    "msg": "OS Version is Debian 20 and Kernel Version is 6.6.9-060609-generic"
-}
-```
+3. After all tasks of the second playbook have been successfuly executed the first playbook can be used to verify that the kernels have been updated successfully:
+  - RedHat OS
+    <img width="1079" alt="Screenshot 2024-01-22 at 01 15 38" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/1633308c-b227-45ce-9126-951e34becb12">
 
-The kernels on both VMs have been update succesfully to version 6.6.9
+  - Debian OS
+    <img width="1102" alt="Screenshot 2024-01-22 at 01 14 57" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/9a367d30-de22-48b0-9da1-de4d772c8e85">
