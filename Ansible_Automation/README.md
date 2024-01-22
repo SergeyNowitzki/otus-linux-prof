@@ -4,6 +4,11 @@ Before proceeding with the tasks, ensure that you have prepared the environment 
 Please make sure you have completed all necessary steps described in the hometask refference:
 https://docs.google.com/document/d/1fZUXL30bDhJEQpDQgtfv3Nj4WYWto98AaYlC1vJ2LkQ/edit
 
+Python 3.9.18
+
+pip install -r requirements.txt
+
+
 Add the private network to the virtual box and choose the necessary subnet, e.g:
 <img width="1102" alt="Screenshot 2024-01-22 at 01 14 57" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/9a367d30-de22-48b0-9da1-de4d772c8e85">
 
