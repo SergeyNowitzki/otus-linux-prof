@@ -173,3 +173,5 @@ cython_debug/
 *.swm
 *.swo
 
+# Vagrant hiden files
+.vagrant

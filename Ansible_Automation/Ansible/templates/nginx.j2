@@ -1,0 +1,19 @@
+user www-data;
+worker_processes auto;
+
+events {
+  worker_connections 1024;
+}
+
+http {
+
+  include mime.types;
+
+  server {
+    listen         {{ listen_port }};
+    server_name    {{ ansible_host }};
+    access_log     /var/log/{{ ansible_host }}.log;
+    root           {{ dst_folder }};
+    index          index.html index.htm index.php;
+  }
+}

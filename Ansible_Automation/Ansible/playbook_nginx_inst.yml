@@ -1,0 +1,117 @@
+---
+
+- hosts: all
+  name: Installation NGINX Web Server
+  become: yes
+
+  vars:
+    files_folder: ./files
+    dst_folder: /var/www/html
+
+  tasks:
+
+    - name: Check and print OS Version
+      debug:
+        var: ansible_os_family
+
+    - name: generate /etc/hosts file for all hosts from host.ini file
+      template:
+        src: "templates/hosts.j2"
+        dest: "/etc/hosts"
+        mode: '0644'
+
+    - name: Create a directory if it does not exist
+      ansible.builtin.file:
+        path: "{{ dst_folder }}"
+        state: directory
+        mode: '0755'
+
+  #================= Block DEBIAN =================
+    - name: NGINX Debian 
+      block:
+        - name: Install NGINX Web Server for Debian Family
+          apt:
+            name: nginx
+            state: latest
+
+        - name: Start NGINX Web Server and Enabel it on boot for Debian Family
+          service:
+            name: nginx
+            state: started
+            enabled: yes
+
+      when: ansible_os_family == "Debian"
+
+  #================= Block REDHUT =================
+    - name: NGINX RedHat
+      block:
+        - name: Install epel-release
+          yum:
+            name: epel-release
+            state: latest
+
+        - name: Install NGINX Web Server for RedHat Family
+          yum:
+            name: "{{ packages }}"
+            state: latest
+          vars:
+            packages:
+            - nginx
+            - vim
+        - name: Adding group www-data
+          group:
+            name: www-data
+            state: present
+
+        - name: Adding user www-data
+          user:
+            name: www-data
+            state: present
+            group: www-data
+
+        - name: Start Apache Web Server and Enabel it on boot for Debian Family
+          service:
+            name: nginx
+            state: started
+            enabled: yes
+
+      when: ansible_os_family == "RedHat"
+
+  #================= COMMON CONFIG =================
+    - name: generate index.htlm
+      template:
+        src: index.j2
+        dest: "{{ dst_folder }}/index.html"
+
+    - name: generate nginx.conf file for all hosts from host.ini file
+      template:
+        src: "nginx.j2"
+        dest: "/etc/nginx/nginx.conf"
+        mode: 0744
+      notify:
+        - Restart NGINX Debian
+        - Restart NGINX RedHat
+        
+    - name: Copy files to /var/www/html
+      copy:
+        src: "{{ files_folder }}/{{ item }}"
+        dest: "{{ dst_folder }}"
+        mode: '0644'
+      loop:
+        - otus.png
+      notify:
+        - Restart NGINX Debian
+        - Restart NGINX RedHat
+
+  handlers:
+    - name: Restart NGINX RedHat
+      service:
+        name: nginx
+        state: restarted
+      when: ansible_os_family == "RedHat"
+
+    - name: Restart NGINX Debian
+      service:
+        name: nginx
+        state: restarted
+      when: ansible_os_family == "Debian"
