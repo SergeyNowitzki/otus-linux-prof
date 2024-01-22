@@ -5,7 +5,8 @@ Please make sure you have completed all necessary steps described in the hometas
 https://docs.google.com/document/d/1fZUXL30bDhJEQpDQgtfv3Nj4WYWto98AaYlC1vJ2LkQ/edit
 
 Add the private network to the virtual box and choose the necessary subnet, e.g:
-<img width="949" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/534038b6-ceb3-4b61-b72f-ed76684cd514">
+<img width="1102" alt="Screenshot 2024-01-22 at 01 14 57" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/9a367d30-de22-48b0-9da1-de4d772c8e85">
+
 
 ### Vagrant Configuration
 1. After cloning the repository, modify the variables in the `Vagrantfile` to your desired values.
@@ -32,7 +33,8 @@ Add the private network to the virtual box and choose the necessary subnet, e.g:
      ```
 
 2. After configuring the `Vagrantfile`, run: `vagrant up`
-<img width="1173" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/d5e6241b-2488-4c2d-8ec1-864fea62c63c">
+<img width="1079" alt="Screenshot 2024-01-22 at 01 15 38" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/1633308c-b227-45ce-9126-951e34becb12">
+
 
    - Once VMs are installed, connect to them via SSH:
      ```
