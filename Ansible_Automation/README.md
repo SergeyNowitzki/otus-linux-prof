@@ -139,8 +139,8 @@ centos-vm-1                : ok=10   changed=5    unreachable=0    failed=0    s
 ubuntu-vm-1                : ok=8    changed=4    unreachable=0    failed=0    skipped=8    rescued=0    ignored=0   
 ```
 3. After all tasks of the second playbook have been successfuly executed the first playbook can be used to verify that the kernels have been updated successfully:
-  - RedHat OS
+  - Debian OS
     <img width="1079" alt="Screenshot 2024-01-22 at 01 15 38" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/1633308c-b227-45ce-9126-951e34becb12">
 
-  - Debian OS
+  - RedHat OS
     <img width="1102" alt="Screenshot 2024-01-22 at 01 14 57" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/9a367d30-de22-48b0-9da1-de4d772c8e85">
