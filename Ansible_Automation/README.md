@@ -1,5 +1,5 @@
 # otus-linux-proffesional
-## TASK 2 Ansible automation - Deploing NGINX on VMs
+## TASK 2 Ansible automation - Deploying NGINX on VMs
 Before proceeding with the tasks, ensure that you have prepared the environment to work with Vagrant and Ansible.
 After cloning the repository, install all necessary packages:
 ```
@@ -52,10 +52,10 @@ Python version of the project is 3.9.18
         ├── index.j2
         └── nginx.j2
     ```
-2. Ensure the IP addresses in the file `inventories/hosts.ini` are correct. It also contains variable which are used for generationg `index.html` and `nginx.conf`, e.g. `listen_port=8080` is used to define a virtual server port.
+2. Ensure the IP addresses in the file `inventories/hosts.ini` are correct. It also contains variable which are used for generating `index.html` and `nginx.conf`, e.g. `listen_port=8080` is used to define a virtual server port.
 3. Set Python interpreter `ansible_python_interpreter` and private SSH key `private_key_file` according to your location in `ansible.cfg`.
-4. `files` directory is supposed to contain web-page content, e.g. in our case it is picture `otus.png`
-5. There are jinja templates in the `templates` directory for generating `/etc/hosts`, `index.html` and `nginx.conf` files based on defined variables. 
+4. `files` directory is supposed to contain web-page content, e.g. in our case, it is picture `otus.png`
+5. There are Jinja templates in the `templates` directory for generating `/etc/hosts`, `index.html` and `nginx.conf` files based on defined variables. 
 
 ### Ansible NGINX servers configuration
 1. Execute Ansible playbook `ansible-playbook playbook_nginx_inst.yml`:
@@ -132,13 +132,7 @@ PLAY RECAP *********************************************************************
 centos-vm-1                : ok=13   changed=3    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0   
 ubuntu-vm-1                : ok=9    changed=0    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0   
 ```
-2. After all tasks of the playbook have been successfuly executed the nginx server will be installed and configured on the severs according to OS system
-```
-LAY RECAP *********************************************************************************************************************************************************************************************************
-centos-vm-1                : ok=10   changed=5    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0   
-ubuntu-vm-1                : ok=8    changed=4    unreachable=0    failed=0    skipped=8    rescued=0    ignored=0   
-```
-3. After all tasks of the second playbook have been successfuly executed the first playbook can be used to verify that the kernels have been updated successfully:
+2. After all tasks of the playbook have been successfully executed, the NGINX server will be installed and configured on the servers according to the OS system.
   - Debian OS
     <img width="1079" alt="Screenshot 2024-01-22 at 01 15 38" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/1633308c-b227-45ce-9126-951e34becb12">
 
