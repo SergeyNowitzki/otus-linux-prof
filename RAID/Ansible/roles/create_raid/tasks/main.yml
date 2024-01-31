@@ -1,0 +1,88 @@
+---
+- name: Check and print OS Version
+  debug:
+    var: ansible_os_family
+
+- name: Installation Software and Components
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+    - vim
+    - net-tools
+    - mdadm
+    - smartmontools
+    - hdparm
+    - gdisk
+
+# Checking for any existing raid arrays
+- name: Checking Status Of Array(s)
+  shell: "cat /proc/mdstat | grep {{ item.name }}"
+  register: "array_check"
+  changed_when: false
+  failed_when: false
+  with_items: '{{ mdadm_arrays }}'
+  check_mode: no
+
+#Creating raid arrays
+- name: Creating Array(s)
+  shell: "yes | mdadm --create /dev/{{ item.name }} --level={{ item.level }} --raid-devices={{ item.devices|count }} {{ item.devices| join (' ') }}"
+  register: "array_create"
+  with_items: '{{ mdadm_arrays }}'
+  when: >
+        item.state|lower == "present" and
+        array_check.results[0].rc != 0
+
+# Capture the raid array details to append to /etc/mdadm/mdadm.conf
+# in order to persist between reboots
+- name: Capturing Array Details
+  command: "mdadm --detail --scan"
+  register: "array_details"
+  changed_when: false
+
+# Creating raid arrays filesystem
+- name: Creating Array(s) Filesystem
+  filesystem:
+    fstype: "{{ item.filesystem }}"
+    opts: "{{ item.filesystem_opts | default(omit) }}"
+    dev: "/dev/{{ item.name }}"
+  with_items: '{{ mdadm_arrays }}'
+  when:
+  - item.state|lower == "present"
+  - item.filesystem is defined
+
+# Mounting raid arrays
+- name: Mounting Array(s)
+  mount:
+    name: "{{ item.mountpoint }}"
+    src: "/dev/{{ item.name }}"
+    fstype: "{{ item.filesystem }}"
+    state: "mounted"
+    opts: "{{ item.opts | default(omit) }}"
+  with_items: '{{ mdadm_arrays }}'
+  when:
+  - item.state|lower == "present"
+  - item.filesystem is defined
+  - item.mountpoint is defined
+
+# Working with mdadm.conf
+- name: Ensure /etc/mdadm/ directory exists
+  file:
+    path: /etc/mdadm/
+    state: directory
+
+- name: Ensure /etc/mdadm/mdadm.conf file exists
+  copy:
+    content: ""
+    dest: /etc/mdadm/mdadm.conf
+    force: no
+
+# Updating /etc/mdadm/mdadm.conf in order to persist between reboots
+- name: arrays | Updating /etc/mdadm/mdadm.conf
+  lineinfile:
+    dest: "/etc/mdadm/mdadm.conf"
+    regexp: "^{{ item }}"
+    line: "{{ item }}"
+    state: "present"
+  with_items: '{{ array_details.stdout_lines }}'

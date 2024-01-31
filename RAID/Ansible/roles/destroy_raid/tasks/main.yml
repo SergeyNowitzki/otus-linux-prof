@@ -1,0 +1,63 @@
+---
+- name: Check and print OS Version
+  debug:
+    var: ansible_os_family
+
+# Checking for any existing raid arrays
+- name: Checking Status Of Array(s)
+  shell: "cat /proc/mdstat | grep {{ item.name }}"
+  register: "array_check"
+  changed_when: false
+  failed_when: false
+  with_items: '{{ mdadm_arrays }}'
+  check_mode: no
+
+# UNmounting raid arrays
+- name: UNmounting Array(s)
+  mount:
+    name: "{{ item.mountpoint }}"
+    src: "/dev/{{ item.name }}"
+    fstype: "{{ item.filesystem }}"
+    state: "unmounted"
+  with_items: '{{ mdadm_arrays }}'
+  when:
+  - item.state|lower == "absent"
+  - item.mountpoint is defined
+
+# Removing raid arrays
+- name: Removing Array(s)
+  command: "mdadm --remove /dev/{{ item.name }}"
+  register: "array_removed"
+  with_items: '{{ mdadm_arrays }}'
+  when: >
+        item.state|lower == "absent"
+
+# Zeroing out the disk devices which were part of the raid array
+- name: Zeroing Out Array Devices
+  command: "mdadm --zero-superblock --force {{ item.devices| join (' ') }}"
+  with_items: '{{ mdadm_arrays }}'
+  when: >
+        item.state|lower == "absent" and
+        array_removed.changed
+
+# Wiping out the disk devices which were part of the raid array
+- name: Wiping Out Array Devices
+  command: "wipefs -af {{ item.devices| join (' ') }}"
+  with_items: '{{ mdadm_arrays }}'
+  when: >
+        item.state|lower == "absent" and
+        array_removed.changed
+  notify:
+    - Stopping RAID 
+    - Updating Initramfs dracut
+
+# Updating /etc/mdadm/mdadm.conf in order to not persist between reboots
+- name: Updating /etc/mdadm/mdadm.conf
+  lineinfile:
+    dest: "/etc/mdadm/mdadm.conf"
+    regexp: "^ARRAY /dev/{{ item.name }}"
+    line: "ARRAY /dev/{{ item.name }}"
+    state: "absent"
+  with_items: '{{ mdadm_arrays }}'
+  when: >
+        item.state == "absent"

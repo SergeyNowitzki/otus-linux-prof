@@ -1,0 +1,24 @@
+---
+- name: Check and print OS Version
+  debug:
+    var: ansible_os_family
+
+# Checking for any existing raid arrays
+- name: Checking Status Of Array(s)
+  shell: "cat /proc/mdstat | grep -A1 {{ raid }}"
+  register: "array_check"
+  changed_when: false
+  failed_when: false
+  check_mode: no
+
+- name: Display Array Status
+  debug:
+    msg: "{{ array_check.stdout }}"
+
+# Marking subsequent devices a faulty (fail)
+- name: Marking Devices As Faulty
+  shell: "mdadm --manage /dev/{{ raid }} --fail {{ device }}"
+
+# Removing subsequent devices
+- name: Removing Devices
+  shell: "mdadm --manage /dev/{{ raid }} --remove {{ device }}"

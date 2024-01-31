@@ -1,0 +1,10 @@
+---
+- hosts: all
+  name: Working with RAID arrays mdadm
+  become: true
+
+  roles:
+    - { role: create_raid, tags: tag1 }
+    - { role: remove_disk, tags: tag2 }
+    - { role: adding_disk, tags: tag3 }
+    - { role: destroy_raid, tags: tag4 }

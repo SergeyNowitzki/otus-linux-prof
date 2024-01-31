@@ -1,0 +1,8 @@
+---
+# handlers file for pcs_install
+- name: yum update
+  yum:
+    update_cache: yes
+    name: '*'
+    state: latest
+    cache_valid_time: 3600

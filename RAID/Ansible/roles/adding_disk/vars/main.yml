@@ -1,0 +1,9 @@
+---
+# vars file for the adding_disk role
+# Define Raid Array name and device which
+# will be added to the array
+
+# Define array name
+raid: 'md127'
+# Define disk devices to append to the array
+device: '/dev/sdb'

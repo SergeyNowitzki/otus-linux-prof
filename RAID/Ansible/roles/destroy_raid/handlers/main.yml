@@ -1,0 +1,15 @@
+---
+# handlers file for removing RAID
+- name: Updating Initramfs
+  shell: "mv /boot/initramfs-$(uname -r).img /boot/initramfs-$(uname -r)-backup.img"
+  when: ansible_os_family == "RedHat"
+
+# Updates initramfs archives in /boot
+- name: Updating Initramfs dracut
+  shell: "dracut /boot/initramfs-$(uname -r).img $(uname -r)"
+  when: ansible_os_family == "RedHat"
+
+# Stop RAID
+- name: Stopping RAID
+  shell: "mdadm -S /dev/{{item.name}}"
+  with_items: '{{ mdadm_arrays }}'
