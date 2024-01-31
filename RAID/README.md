@@ -130,7 +130,7 @@ In this task we are going to use `mdadm` utility to work with RAID arrays.
 
 ### Ansible Removing a faulty a Disk from the RAID array
 1. If we need to remove a failty disk from the array we can use role `remove_disk`.
-   In `remove_disk/var/main.yml` we can difine the name of `raid` and `device` which should be removed from the array.
+   In `remove_disk/var/main.yml` we can define the name of `raid` and `device` which should be removed from the array.
    Now playbook `ansible-playbook main.yml --tags tag2` can be executed:
    ```
         [WARNING]: Invalid characters were found in group names but not replaced, use -vvvv to see details
@@ -186,7 +186,7 @@ In this task we are going to use `mdadm` utility to work with RAID arrays.
 
 ### Ansible Adding a Disk to RAID array
 1. To add a disk to the array role `adding_disk` can be used.
-  `raid` and `device` variables must be defyined in file `adding_disk/var/main.yml`
+  `raid` and `device` variables must be defined in file `adding_disk/var/main.yml`
   playbook execution: `ansible-playbook main.yml --tags tag3`
     ```
         [WARNING]: Invalid characters were found in group names but not replaced, use -vvvv to see details
