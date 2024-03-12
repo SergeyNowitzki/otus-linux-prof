@@ -1,13 +1,7 @@
 # otus-linux-proffesional
 ## TASK 10: Systemd - Creating Unit File
 
-In this task we are going to use `mdadm` utility to work with RAID arrays.
 
-if systemctl list-timers --all
-NEXT                         LEFT     LAST                         PASSED   UNIT                         ACTIVATE
-n/a                          n/a      n/a                          n/a      watchlog.timer               watchlog.service
-please restart playbook:
-ansible-playbook main.yml --tags tag1
 
 ansible-playbook main.yml --tags tag2
 [root@centos-vm-1 vagrant]# systemctl status spawn-fcgi
@@ -50,7 +44,7 @@ LISTEN     0      128       [::]:8282                  [::]:*                   
 
    - In the `Vagrantfile`, choose IP addresses belonging to the chosen subnet:
      ```
-     ":ip_addr => '192.168.99.99'"
+     ":ip_addr => '192.168.99.121'"
      ```
 
    - Adding additional block device size 1GB to the VM:
@@ -72,24 +66,38 @@ LISTEN     0      128       [::]:8282                  [::]:*                   
 1. Navigate to the Ansible folder: `cd Ansible`. Ansible contains roles which are supposed to use to create a RAID, add a disk to a RAID, remove a disk form a RAID and destry a RAID:
     ```
         roles
-        ├── adding_disk
-        ├── create_raid
-        ├── destroy_raid
-        └── remove_disk
+        ├── watchlog_service
+        ├── spawn-fcgi-init
+        └── unit-httpd
     ```
 2. Ensure the IP addresses in the file `inventories/hosts.ini` are correct. In our case the host belongs to Virtual Box Host-only Network 192.168.99.0/24:
     ```
         [centos-vm]
-        centos-vm-1  ansible_host=192.168.99.99
+        centos-vm-1  ansible_host=192.168.99.121
     ```
 
-### Ansible Creating RAID array and mounting
-1. Define variables for creating a RAID array in `roles/create_raid/vars/all.yml`. The list of RAIDs can be created with the following parameters:
-  - `name` - a name of raid
-  - `devices` - a list of devices the RAID includes
-  - `filesystem` - Define filesystem of the RAID
-  - `level` - Define the array raid level (0|1|4|5|6|10)
-  - `mountpoint` - Define mountpoint for the array device
+### Ansible Creating watchlog.timer and watchlog.service
+1. Define variables for creating a RAID array in `roles/create_raid/vars/all.yml`. The list of RAIDs can be created if systemctl list-timers --all
+NEXT                         LEFT     LAST                         PASSED   UNIT                         ACTIVATE
+n/a                          n/a      n/a                          n/a      watchlog.timer               watchlog.service
+please restart playbook:
+ansible-playbook main.yml --tags tag1
+
+[root@centos-vm-1 vagrant]# systemctl list-timers
+NEXT                         LEFT     LAST                         PASSED   UNIT                         ACTIVATES
+Tue 2024-03-12 00:49:19 UTC  26s left n/a                          n/a      watchlog.timer               watchlog.service
+Wed 2024-03-13 00:40:13 UTC  23h left Tue 2024-03-12 00:40:13 UTC  8min ago systemd-tmpfiles-clean.timer systemd-tmpfiles-
+
+tail -f /var/log/messages
+Mar 12 16:48:57 terraform-instance systemd: Starting My watchlog service...
+Mar 12 16:48:57 terraform-instance root: Tue Feb 26 16:48:57 +05 2019: I found word, master!
+Mar 12 16:48:57 terraform-instance systemd: Started My watchlog service.
+Mar 12 16:49:27 terraform-instance systemd: Starting My watchlog service...
+Mar 12 16:49:27 terraform-instance root: Tue Feb 26 16:49:27 +05 2019: I found word, master!
+Mar 12 16:49:27 terraform-instance systemd: Started My watchlog service.
+
+
+
 
 2. Execute Ansible playbook from with from the `Ansible` directory  `ansible-playbook main.yml --tags tag1`:
     ```
