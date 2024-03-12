@@ -1,0 +1,66 @@
+---
+- name: Check and print OS Version
+  debug:
+    var: ansible_os_family
+
+# Install SELinux tools to permit httpd starts on custom port
+- name: Install SELinux tools
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - setroubleshoot-server 
+      - selinux-policy-mls 
+      - setools-console 
+      - policycoreutils-python 
+      - policycoreutils-newrole
+
+- name: Allow httpd to listen on custom port
+  seport:
+    ports: "{{ item.listen_port }}"
+    proto: tcp
+    setype: http_port_t
+    state: present
+  with_items: "{{ httpd_services }}"
+
+- name: Copy httpd.service to /lib/systemd/system
+  copy:
+    src: httpd.service
+    dest: /lib/systemd/system/httpd@.service
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  notify:
+    - Reload systemctl deamon
+
+- name: Create config files for httpd instances
+  file:
+    path: "/etc/sysconfig/httpd-{{ item.name }}"
+    state: touch
+    owner: root
+    group: root
+  with_items: "{{ httpd_services }}"
+
+- name: Adding lines to httpd config files
+  lineinfile:
+    dest: "/etc/sysconfig/httpd-{{ item.name }}"
+    line: "OPTIONS=-f conf/{{ item.name }}.conf"
+  with_items: "{{ httpd_services }}"
+
+- name: Copy j2 template to /etc/httpd/
+  template:
+    src: httpd-conf.j2
+    dest: "/etc/httpd/conf/{{ item.name }}.conf"
+    owner: root
+    group: root
+    mode: 0644
+  with_items: "{{ httpd_services }}"
+
+- name: Start httpd service
+  service:
+    name: "httpd@{{ item.name }}"
+    state: started
+    enabled: true
+  with_items: "{{ httpd_services }}"

@@ -1,0 +1,9 @@
+---
+# defaults file for httpd-conf
+#
+# Define amoun of instances of the service
+httpd_services:
+  - name: 'first'
+    listen_port: '8181'
+  - name: 'second'
+    listen_port: '8282'

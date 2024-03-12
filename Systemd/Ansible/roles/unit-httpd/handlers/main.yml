@@ -1,0 +1,13 @@
+---
+# handlers file for unit-httpd
+- name: Reload systemctl deamon
+  become: true
+  command: systemctl daemon-reload
+
+- name: Restart httpd service
+  become: true
+  service:
+    name: httpd
+    state: restarted
+    enabled: yes
+  when: ansible_os_family == "RedHat"

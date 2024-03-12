@@ -1,0 +1,9 @@
+---
+- hosts: all
+  name: Working with RAID arrays mdadm
+  become: true
+
+  roles:
+    - { role: watchlog_service, tags: tag1 }
+    - { role: spawn-fcgi-init, tags: tag2 }
+    - { role: unit-httpd, tags: tag3 }

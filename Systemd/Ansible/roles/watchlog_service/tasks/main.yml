@@ -1,0 +1,42 @@
+---
+- name: Check and print OS Version
+  debug:
+    var: ansible_os_family
+
+- name: Copy watchlog file
+  copy:
+    src: watchlog
+    dest: /etc/sysconfig/
+
+- name: Create watchlog.log with content
+  copy:
+    content: |
+      "ERROR"
+      "CRITICAL"
+      "ALERT"
+    dest: /var/log/watchlog.log
+
+- name: Copy watchlog.sh file to /opt/ with executable permissions
+  copy:
+    src: watchlog.sh
+    dest: /opt/
+    mode: 0755
+
+- name: Create watchlog service unit
+  copy:
+    src: watchlog.service
+    dest: /lib/systemd/system
+  notify:
+    - Reload systemctl deamon
+
+- name: Create watchlog timer unit
+  copy:
+    src: watchlog.timer
+    dest: /lib/systemd/system
+  notify:
+    - Reload systemctl deamon
+    - Start watchlog.timer
+    - Start watchlog.service
+
+- name: watch service up
+  shell: systemctl start watchlog.service

@@ -1,0 +1,15 @@
+---
+# reload systemctl deamon
+- name: Reload systemctl deamon
+  become: true
+  command: systemctl daemon-reload
+
+- name: Start watchlog.service
+  service:
+    name: watchlog.service
+    state: started
+
+- name: Start watchlog.timer
+  service:
+    name: watchlog.timer
+    state: started

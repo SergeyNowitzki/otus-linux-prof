@@ -1,0 +1,23 @@
+Vagrant.configure("2") do |config|
+  # iscsi initiator 3 servers
+  (1..1).each do |i|
+    config.vm.define "centos-vm-#{i}" do |centos_vm|
+      # Box settings
+      centos_vm.vm.box = "centos/7"
+      centos_vm.vm.box_check_update = false
+
+      centos_vm.vm.hostname = "centos-vm-#{i}"
+      centos_vm.vm.network "private_network", ip: "192.168.99.12#{i}"
+
+      centos_vm.vm.provider "virtualbox" do |vb|
+        vb.name = "centos-vm-#{i}"
+        vb.memory = "1024"
+        vb.cpus = '1'
+      end
+
+      centos_vm.vm.provision "shell", inline: <<-SHELL
+        echo "ssh-rsa YOUR PUB KEY" >> /home/vagrant/.ssh/authorized_keys
+      SHELL
+    end
+  end
+end

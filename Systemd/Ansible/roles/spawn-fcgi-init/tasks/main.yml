@@ -1,0 +1,49 @@
+---
+- name: Check and print OS Version
+  debug:
+    var: ansible_os_family
+
+# Install epel-release
+- name: Installation epel-release
+  yum:
+    name: epel-release
+    state: present
+    update_cache: yes
+
+- name: Installation spawn-fcgi from epel
+  yum:
+    name: "{{ packages }}"
+    state: present
+    update_cache: yes
+  vars:
+    packages:
+      - spawn-fcgi
+      - php
+      - php-cli
+      - mod_fcgid
+      - httpd
+
+- name: Uncomment SOCKET in /etc/sysconfig/spawn-fcgi
+  lineinfile:
+    path: /etc/sysconfig/spawn-fcgi
+    regexp: '^#SOCKET=.*'
+    line: 'SOCKET=/var/run/php-fcgi.sock'
+  changed_when: true
+
+- name: Uncomment OPTIONS in /etc/sysconfig/spawn-fcgi
+  lineinfile:
+    path: /etc/sysconfig/spawn-fcgi
+    regexp: '^#OPTIONS=.*'
+    line: 'OPTIONS="-u apache -g apache -s $SOCKET -S -M 0600 -C 32 -F 1 -- /usr/bin/php-cgi"'
+  changed_when: true
+
+- name: Copy spawn-fcgi.service
+  copy:
+    src: spawn-fcgi.service
+    dest: /etc/systemd/system/spawn-fcgi.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: 
+    - Reload systemctl deamon
+    - Restart spawn-fcgi

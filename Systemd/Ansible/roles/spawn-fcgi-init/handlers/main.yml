@@ -1,0 +1,10 @@
+---
+# handlers file for spawn-fcgi-init
+- name: Reload systemctl deamon
+  become: true
+  command: systemctl daemon-reload
+
+- name: Restart spawn-fcgi
+  service:
+    name: spawn-fcgi
+    state: started
