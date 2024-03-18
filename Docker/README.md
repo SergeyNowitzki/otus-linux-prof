@@ -83,3 +83,4 @@ To install PurpleMine, just download .zip and unpack it to your Redmine's public
 Then go to Redmine > Administration > Settings > Display and select PurpleMine2 from the list and save the changes.
 
 http://loaclhost:3000
+<img width="1327" alt="Redmine_theme_bl" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/84a515c2-0072-45a2-8e92-9a2a83d96ae7">
