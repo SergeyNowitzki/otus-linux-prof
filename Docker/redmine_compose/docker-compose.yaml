@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  redmine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: redmine-custom:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - redmine_data:/usr/src/redmine/files
+      - redmine_logs:/usr/src/redmine/log
+    environment:
+      REDMINE_DB_MYSQL: db
+      REDMINE_DB_DATABASE: redmine
+      REDMINE_DB_USERNAME: redmine
+      REDMINE_DB_PASSWORD: password
+      REDMINE_SECRET_KEY_BASE: secret_key_base
+      REDMINE_ALLOW_LDAP_PASSWORD_CHANGE: 'true'
+    depends_on:
+      - db
+
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: redmine
+      MYSQL_USER: redmine
+      MYSQL_PASSWORD: password
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  redmine_data:
+  redmine_logs:
+  db_data:
