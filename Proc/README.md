@@ -1,5 +1,5 @@
 # otus-linux-proffesional
-## TASK 12: Systemd - ps ax emulator
+## TASK 12: Process Management - ps ax emulator
 
 ### Python Script Description
 It iterates over every entry in the `/proc` directory, checking for directories that have a numeric name, which corresponds to process IDs (PIDs).
