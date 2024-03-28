@@ -1,0 +1,53 @@
+---
+- name: Check and print OS Version
+  debug:
+    var: ansible_os_family
+
+- name: Install NFS server packages
+  yum:
+    name:
+      - nfs-utils
+      - rpcbind
+    state: present
+  
+- name: Ensure rpcbind and nfs-server services are enabled and running
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop:
+    - rpcbind
+    - nfs-server
+
+- name: Create an NFS export directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: nfsnobody
+    group: nfsnobody
+    mode: '0777'
+  loop:
+    - /srv/share/
+    - /srv/share/upload
+
+- name: Export the NFS directory
+  lineinfile:
+    path: "/etc/exports"
+    line: "/srv/share/    {{ nfs_client_subnet }}(rw,sync,root_squash)"
+    create: yes
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Reload NFS server
+
+- name: Allow NFS through the firewall
+  firewalld:
+    service: "{{ item }}"
+    permanent: yes
+    state: enabled
+  loop:
+    - nfs
+    - nfs3
+    - mountd
+    - rpc-bind
+  notify: Reload firewalld

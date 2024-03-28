@@ -1,0 +1,8 @@
+---
+- hosts: all
+  name: Working with NFS
+  become: true
+
+  roles:
+    - { role: nfs_srv_cfg, when: "inventory_hostname in groups['nfs-srv']", tags: tag1 }
+    - { role: nfs_cln_cfg, when: "inventory_hostname in groups['nfs-cln']", tags: tag2 }

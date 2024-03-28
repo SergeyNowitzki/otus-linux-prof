@@ -1,0 +1,41 @@
+---
+- name: Install NFS client packages
+  yum:
+    name: nfs-utils
+    state: present
+
+- name: Mount NFS export
+  mount:
+    path: "/mnt"
+    src: "{{ nfs_srv_ip }}:/srv/share"
+    fstype: nfs
+    opts: "vers=3,proto=udp"
+    state: mounted
+    fstab: /etc/fstab
+  register: nfs_mount
+  notify: Mount point
+
+- name: Ensure the upload directory exists
+  file:
+    path: "/mnt/upload"
+    state: directory
+    mode: '0777'
+  when: nfs_mount.changed or nfs_mount.failed is not defined
+
+- name: Create a test file in the upload directory
+  copy:
+    dest: "/mnt/upload/test_file.txt"
+    content: "This is a test file created on a client \n"
+    mode: '0644'
+  when: nfs_mount.changed or nfs_mount.failed is not defined
+
+- name: Allow NFS through the firewall
+  firewalld:
+    service: "{{ item }}"
+    permanent: yes
+    state: enabled
+  loop:
+    - nfs
+    - mountd
+    - rpc-bind
+  notify: Reload firewalld

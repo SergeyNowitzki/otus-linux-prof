@@ -1,0 +1,9 @@
+---
+# handlers file for nfs_srv_cfg
+- name: Mount point
+  command: mount /mnt
+
+- name: Reload firewalld
+  service:
+    name: firewalld
+    state: reloaded
