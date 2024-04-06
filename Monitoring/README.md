@@ -120,12 +120,16 @@ The `install_node_exporter` role is designed to deploy and configure the Prometh
     ```
     http://192.168.99.111:9090/targets
     ```
+<img width="1323" alt="Prometheus_targets" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/1a83d8b5-a021-42b5-bf05-d95f99791842">
+
 **Note:** The IP address `192.168.99.111` should be replaced with the actual IP address of your Prometheus server if it differs. Also, verify that your network allows access to the Prometheus server on port 9090 to view this page.
 
 
 ### Installation and Configuration Grafana (install_grafana Role)
 This role is designed to automate the deployment and configuration of Grafana, enabling you to visualize metrics from Prometheus.
 The `CPU_RAM_NET_DISK.json` dashboard template is included to get you started with common metrics.
+<img width="1321" alt="Dashboard" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/63b7913b-a858-4fbb-90f7-7a42f5d4ca69">
+
 
 #### Configuration Overview
 The configuration variables for this role are defined in `vars/main.yml`. These variables allow for customization of the Grafana installation, including the admin user, password, data source, and dashboard settings. Here is an example of the variable definitions:
@@ -156,6 +160,8 @@ After applying the playbook, access Grafana through the following URL:
 ```
 http://192.168.99.111:3000/
 ```
+<img width="481" alt="grafana_login" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/1ac2dbf5-c0cf-41a2-9f1c-7b6ccd3e99ef">
+
 Applying Configuration with Ansible
 To install and configure Grafana along with the necessary components, run the following command:
 ```
@@ -163,5 +169,9 @@ ansible-playbook main.yml --tags tag3
 ```
 Post-Installation Steps
 API Key Generation: A `grafana_api_key.txt` token will be generated for the **service user** after installation. This API key is crucial for making API calls, including adding data sources and dashboards.
+<img width="1268" alt="Service_User" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/83ed8a1d-2488-42c4-a467-8901208f7916">
+
 
 Data Source and Dashboard Configuration: The API key enables the addition of Prometheus as a data source and the association of the provided dashboard template with this data source. Ensure the `"datasource": "Prometheus"` value in your dashboard JSON matches the name of your **Prometheus data source**.
+<img width="1297" alt="Data_Source" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/89cd85ce-6cd0-45e1-9a58-d15331fdeaa9">
+
