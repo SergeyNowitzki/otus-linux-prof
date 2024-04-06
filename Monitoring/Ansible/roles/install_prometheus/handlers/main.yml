@@ -1,0 +1,14 @@
+---
+# handlers file for Prometheus and Granfana
+- name: Reload Prometheus
+  service:
+    name: prometheus
+    state: restarted
+
+- name: Reload systemd daemon
+  command: systemctl daemon-reload
+
+- name: Restart ntpd
+  service:
+    name: ntpd
+    state: restarted

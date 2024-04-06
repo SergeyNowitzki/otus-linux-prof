@@ -1,0 +1,9 @@
+---
+- hosts: all
+  name: Working with Prometheus and Grafana
+  become: true
+
+  roles:
+    - { role: install_prometheus, when: "inventory_hostname in groups['mon-srv']", tags: tag1 }
+    - { role: install_node_exporter, when: "inventory_hostname in groups['mon-cln']", tags: tag2 }
+    - { role: install_grafana, when: "inventory_hostname in groups['mon-srv']", tags: tag3 }

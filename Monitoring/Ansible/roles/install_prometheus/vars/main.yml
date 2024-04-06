@@ -1,0 +1,5 @@
+---
+# vars file for prometheus_grafana
+prometheus_version: "2.44.0"
+node_exporter_version: "1.5.0"
+grafana_version: "9.5.2-1"

@@ -1,0 +1,14 @@
+---
+# vars file for prometheus_grafana
+    grafana_admin_user: admin
+    grafana_admin_password: newpassword
+    prometheus_data_source_name: Prometheus
+    grafana_git_repo: https://github.com/enzobes/Grafana-Dashboard.git
+    grafana_git_branch: master
+    dashboard_json_file: ./roles/install_grafana/files/CPU_RAM_NET_DISK.json
+    grafana_ini_path: /etc/grafana/grafana.ini
+    backup_path: "/etc/grafana/grafana.ini.backup.{{ ansible_date_time.iso8601_basic_short }}"
+    api_key_name: "ansible-generated"
+    api_key_role: "Admin"  # Can be Admin, Editor, or Viewer
+    api_key_expiration_seconds: 0  # Set to 0 for no expiration
+    output_file_path: "./roles/install_grafana/files/grafana_api_key.txt"

@@ -1,0 +1,42 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  # Box settings (global)
+  config.vm.box = "centos/7"
+  config.vm.box_check_update = false
+
+  # Monitoring client configuration
+  (1..2).each do |i|
+config.vm.define "srv_cln#{i}" do |srv_cln|
+  srv_cln.vm.hostname = "srv-cln#{i}"
+  srv_cln.vm.network "private_network", ip: "192.168.99.12#{i}"
+
+  srv_cln.vm.provider "virtualbox" do |vb|
+    vb.name = "srv-cln#{i}"
+    vb.memory = "1024"
+    vb.cpus = 1
+  end
+
+  srv_cln.vm.provision "shell", inline: <<-SHELL
+    echo "ssh-rsa YOUR PUB KEY" >> /home/vagrant/.ssh/authorized_keys
+  SHELL
+end
+end
+
+
+  # Monitoring server configuration
+  config.vm.define "mon_srv" do |mon_srv|
+    mon_srv.vm.hostname = "mon-srv"
+    mon_srv.vm.network "private_network", ip: "192.168.99.111"
+
+    mon_srv.vm.provider "virtualbox" do |vb|
+      vb.name = "mon_srv"
+      vb.memory = "1024"
+      vb.cpus = 1
+    end
+    mon_srv.vm.provision "shell", inline: <<-SHELL
+      echo "ssh-rsa YOUR PUB KEY" >> /home/vagrant/.ssh/authorized_keys
+    SHELL
+  end
+end

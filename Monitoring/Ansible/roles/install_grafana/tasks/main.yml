@@ -1,0 +1,150 @@
+---
+- name: Check and print OS Version
+  debug:
+    var: ansible_os_family
+
+- name: Install Packets
+  yum:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - git
+
+#- name: Pull Grafana Dashboard from Git repo
+#  delegate_to: localhost
+#  become: false  # Ensure this task does not use sudo
+#  git:
+#    repo: "{{ grafana_git_repo }}"
+#    dest: roles/install_grafana/files/
+#    version: "{{ grafana_git_branch }}"
+#
+- name: Add Grafana repo
+  get_url:
+    url: https://packages.grafana.com/gpg.key
+    dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-grafana
+    validate_certs: no
+  notify: import grafana gpg key
+
+- name: Import Grafana GPG key
+  rpm_key:
+    state: present
+    key: /etc/pki/rpm-gpg/RPM-GPG-KEY-grafana
+
+- name: Add Grafana repository
+  yum_repository:
+    name: grafana
+    description: Grafana repository
+    baseurl: https://packages.grafana.com/oss/rpm
+    gpgcheck: yes
+    repo_gpgcheck: yes
+    gpgkey: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-grafana
+    enabled: yes
+
+- name: Install Grafana
+  yum:
+    name: grafana
+    state: present
+  notify: restart grafana
+
+- name: Ensure Grafana service is running and enabled
+  systemd:
+    name: grafana-server
+    enabled: yes
+    state: started
+
+- name: Change defaul password
+  command: grafana-cli admin reset-admin-password {{ grafana_admin_password }}
+  notify: restart grafana
+
+- name: Backup grafana.ini file
+  copy:
+    src: "{{ grafana_ini_path }}"
+    dest: "{{ backup_path }}"
+    remote_src: yes
+  tags: backup
+
+- name: Copy custom Grafana config file to target
+  copy:
+    src: grafana.ini
+    dest: "{{ grafana_ini_path }}"
+    backup: yes  # Creates a backup of the destination file if it differs from the src
+  notify: restart grafana
+
+- name: Install Grafana Pie Chart Panel Plugin
+  grafana_plugin:
+    name: grafana-piechart-panel
+    state: present
+  notify: restart grafana
+
+- name: Create a Service Account in Grafana
+  uri:
+    url: "http://{{ ansible_host }}:3000/api/serviceaccounts"
+    method: POST
+    body_format: json
+    body:
+      name: "Ansible"
+      role: "Admin"
+    headers:
+      Content-Type: "application/json"
+    user: "{{ grafana_admin_user }}"
+    password: "{{ grafana_admin_password }}"
+    force_basic_auth: yes
+    status_code: [200, 201]
+  register: service_account_response
+
+- name: Create a Token for the Service Account
+  uri:
+    url: "http://{{ ansible_host }}:3000/api/serviceaccounts/{{ service_account_response.json.id }}/tokens"
+    method: POST
+    body_format: json
+    body:
+      name: "test-token"
+    headers:
+      Content-Type: "application/json"
+    user: "{{ grafana_admin_user }}"
+    password: "{{ grafana_admin_password }}"
+    force_basic_auth: yes
+    status_code: 200
+  register: service_account_token_response
+
+- name: Write the API key to a file
+  become: false
+  copy:
+    dest: "{{ output_file_path }}"
+    content: "{{ service_account_token_response.json.key }}"
+    mode: '0600'  # Ensures the file is not readable by others; adjust as necessary
+  delegate_to: localhost
+  when: service_account_token_response is defined and service_account_token_response.json.key is defined
+
+- name: Display the file path
+  debug:
+    msg: "API key stored in {{ output_file_path }}"
+
+- name: Add Prometheus as a DataSource in Grafana using API Token
+  uri:
+    url: "http://{{ ansible_host }}:3000/api/datasources"
+    method: POST
+    body_format: json
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ lookup('file', output_file_path) | trim }}"
+    body:
+      name: "Prometheus"
+      type: "prometheus"
+      access: "proxy"
+      url: "http://{{ ansible_host }}:9090"
+      isDefault: true
+    status_code: 200,409
+    validate_certs: no
+
+- name: Import Dashboard to Grafana using API Token
+  uri:
+    url: "http://{{ ansible_host }}:3000/api/dashboards/db"
+    method: POST
+    body_format: json
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ lookup('file', output_file_path) | trim }}"
+    body: "{\"dashboard\": {{ lookup('file', dashboard_json_file) }}, \"overwrite\": false}"
+    status_code: 200
+    validate_certs: no
