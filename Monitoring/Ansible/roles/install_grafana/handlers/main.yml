@@ -1,0 +1,10 @@
+---
+# handlers file for Prometheus and Granfana
+- name: restart grafana
+  systemd:
+    name: grafana-server
+    state: restarted
+    enabled: yes
+
+- name: import grafana gpg key
+  command: rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-grafana
