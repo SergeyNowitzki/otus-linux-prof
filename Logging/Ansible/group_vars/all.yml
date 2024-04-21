@@ -1,0 +1,11 @@
+---
+ansible_connection: ssh
+files_folder: ./files
+dst_folder: /var/www/html
+log_server: 192.168.99.121
+elasticsearch_version: "8.x"
+logstash_version: "1:8.x-1"
+kibana_version: "8.x"
+elastic_user: elastic
+elastic_psswd: 123elastic456
+kibana_system_password: kibana123
