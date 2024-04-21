@@ -10,6 +10,7 @@
     <th>Broadcast</th>
   </tr>
   <tr>
+    <td colspan="2">Cell 1 and 2 merged</td>
     <td align="center"> Central Network </td>
   </tr>
     <td align="left">Directors</td>
