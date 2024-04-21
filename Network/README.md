@@ -9,9 +9,7 @@
     <th>Broadcast</th>
   </tr>
   <tr>
-    <td colspan="2"></td>
-    <td colspan="3" align="center"> Central Network </td>
-    <td colspan="2"></td>
+    <td colspan="7" align="center"> Central Network </td>
   </tr>
     <td align="left">Directors</td>
     <td align="left">192.168.0.0/28</td>
@@ -39,9 +37,7 @@
     <td align="left">192.168.0.126</td>
     <td align="left">192.168.0.127</td>
   </tr>
-    <td colspan="2"></td>
-    <td colspan="3" align="center"> Office 1 Network </td>
-    <td colspan="2"></td>
+    <td colspan="7" align="center"> Office 1 Network </td>
 </table>
 <br />
 
