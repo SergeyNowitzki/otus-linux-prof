@@ -1,5 +1,6 @@
 # otus-linux-proffesional
 ## TASK 19: Network Design
+<img width="347" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/ddb08149-a2cc-4208-84d6-db14c281611c">
 
 ### Subnetting
 
