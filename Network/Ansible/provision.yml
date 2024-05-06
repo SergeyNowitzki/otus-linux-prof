@@ -1,0 +1,107 @@
+---
+- hosts: all
+  name: Network Configuration
+  become: true
+
+  tasks:
+
+    - name: Check and print OS Version
+      debug:
+        var: ansible_os_family
+
+    - name: Install Packets
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - wget
+        - net-tools
+        - curl
+        - vim
+        - ntp
+        - conntrack
+
+    - name: Disable ufw
+      service:
+        name: ufw
+        state: stopped
+        enabled: false
+
+    - name: Start NTP Service
+      service:
+        name: ntp
+        state: started
+        enabled: yes
+
+    - name: Copy NTP Configuration
+      copy:
+        src: ntp.conf
+        dest: /etc/ntp.conf
+        owner: root
+        group: root
+        mode: 0644
+      notify:
+        - Restart ntp
+
+    - name: Set up NAT on inetRouter
+      copy: 
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: root
+        group: root
+        mode: "{{ item.mode }}"
+      with_items:
+        - { src: "iptables_rules.ipv4", dest: "/etc/iptables_rules.ipv4", mode: "0644" }
+        - { src: "iptables_restore", dest: "/etc/network/if-pre-up.d/iptables", mode: "0755" }
+      notify:
+        - Iptables restore 
+      when: (ansible_hostname == "inetRouter")
+
+    - name: ip forwarding enable
+      sysctl:
+        name: net.ipv4.conf.all.forwarding
+        value: '1'
+        state: present
+      notify:
+        - sysctl reload
+      when: "'Routers' in group_names"
+
+    - name: disable default route
+      copy: 
+        src: 00-installer-config.yaml
+        dest: /etc/netplan/00-installer-config.yaml
+        owner: root
+        group: root
+        mode: 0644
+      notify:
+        - Netplan apply
+      when: (ansible_hostname != "inetRouter")
+
+    - name: Routing via netplan configuration
+      template: 
+        src: "50-vagrant_{{ansible_hostname}}.yaml"
+        dest: /etc/netplan/50-vagrant.yaml
+        owner: root
+        group: root
+        mode: 0644
+      notify:
+        - Netplan apply
+
+
+  handlers:
+    - name: Reload systemd daemon
+      command: systemctl daemon-reload
+    
+    - name: Restart ntp
+      service:
+        name: ntp
+        state: restarted
+    
+    - name: sysctl reload
+      command: sysctl -p
+    
+    - name: Netplan apply
+      command: netplan apply
+
+    - name: Iptables restore
+      shell: "/sbin/iptables-restore < /etc/iptables_rules.ipv4"
