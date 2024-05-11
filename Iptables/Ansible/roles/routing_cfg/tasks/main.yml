@@ -1,0 +1,30 @@
+---
+- name: ip forwarding enable
+  sysctl:
+    name: net.ipv4.conf.all.forwarding
+    value: '1'
+    state: present
+  notify:
+    - sysctl reload
+  when: "'Routers' in group_names"
+
+- name: disable default route
+  copy: 
+    src: 00-installer-config.yaml
+    dest: /etc/netplan/00-installer-config.yaml
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Netplan apply
+  when: (ansible_hostname != "inetRouter")
+
+- name: Routing via netplan configuration
+  template: 
+    src: "50-vagrant_{{ansible_hostname}}.yaml"
+    dest: /etc/netplan/50-vagrant.yaml
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Netplan apply

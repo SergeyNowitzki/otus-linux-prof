@@ -1,0 +1,6 @@
+---
+# handlers file for routing_cfg
+- name: Restart NGINX Debian
+  service:
+    name: nginx
+    state: restarted

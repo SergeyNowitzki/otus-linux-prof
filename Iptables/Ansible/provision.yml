@@ -1,0 +1,11 @@
+---
+- hosts: all
+  name: IPtables NAT PortKnocking
+  become: true
+
+  roles:
+    - { role: basic_cfg, tags: tag1 }
+    - { role: routing_cfg, tags: tag2 }
+    - { role: nginx_cfg, when: "inventory_hostname == 'centralServer'", tags: tag3 }
+    - { role: nat_cfg, tags: tag4 }
+    - { role: portknocking_cfg, when: "ansible_hostname == 'inetRouter'", tags: tag5 }

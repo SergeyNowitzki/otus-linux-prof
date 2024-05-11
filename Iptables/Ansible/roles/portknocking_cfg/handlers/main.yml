@@ -1,0 +1,6 @@
+---
+# handlers file for portknocking_cfg
+- name: Restart knockd
+  service:
+    name: knockd
+    state: restarted

@@ -1,0 +1,35 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600  # Updates the cache if it's older than 1 hour
+
+- name: Install NGINX Web Server for Debian Family
+  apt:
+    name: nginx
+    state: latest
+
+- name: Start NGINX Web Server and Enabel it on boot for Debian Family
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Generate nginx config file 
+  template:
+    src: "nginx.conf.j2"
+    dest: "/etc/nginx/nginx.conf"
+    mode: 0744
+  notify:
+    - Restart NGINX Debian
+
+- name: Copy files to /var/www/html
+  copy:
+    src: "{{ item }}"
+    dest: "{{ dst_folder }}"
+    mode: '0644'
+  loop:
+    - otus.png
+    - index.html
+  notify:
+    - Restart NGINX Debian

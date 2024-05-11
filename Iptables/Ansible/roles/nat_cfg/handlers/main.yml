@@ -1,0 +1,4 @@
+---
+# handlers file for routing_cfg
+- name: Iptables restore
+  shell: "/sbin/iptables-restore < /etc/iptables_rules.ipv4"

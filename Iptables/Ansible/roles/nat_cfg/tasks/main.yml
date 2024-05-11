@@ -1,0 +1,28 @@
+---
+- name: Set up NAT on inetRouter
+  copy: 
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  with_items:
+    - { src: "iptables_rules.ipv4", dest: "/etc/iptables_rules.ipv4", mode: "0644" }
+    - { src: "iptables_restore", dest: "/etc/network/if-pre-up.d/iptables", mode: "0755" }
+  notify:
+    - Iptables restore 
+  when: (ansible_hostname == "inetRouter")
+
+- name: Set up DNAT on inetRouter2
+  copy: 
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  with_items:
+    - { src: "iptables_DNAT_rules.ipv4", dest: "/etc/iptables_rules.ipv4", mode: "0644" }
+    - { src: "iptables_restore", dest: "/etc/network/if-pre-up.d/iptables", mode: "0755" }
+  notify:
+    - Iptables restore 
+  when: (ansible_hostname == "inetRouter2")

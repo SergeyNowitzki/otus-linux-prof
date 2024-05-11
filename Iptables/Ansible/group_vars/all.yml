@@ -1,0 +1,4 @@
+---
+ansible_connection: ssh
+files_folder: ./files
+dst_folder: /var/www/html

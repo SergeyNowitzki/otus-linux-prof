@@ -1,0 +1,7 @@
+---
+# handlers file for routing_cfg
+- name: sysctl reload
+  command: sysctl -p
+
+- name: Netplan apply
+  command: netplan apply
