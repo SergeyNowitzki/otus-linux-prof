@@ -8,6 +8,7 @@ inetRouter2 is connected via host only subnet to the host machine (in our case *
 inetRouter2 will redirect all request from **192.168.50.10:8080** to centralServer **192.168.0.2:80**.
 NGINX which is supposed to be installed on centralServer should be avaliable from other offices.
 
+<img width="481" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/394fbfa9-f238-47e7-8adf-dae4ccd367d4">
 
 ### Vagrant Configuration
 The Vagrant file describes installation 5 VMs Routers and 3 VMs - Servers. All VMs run Ubuntu 22.
@@ -135,10 +136,39 @@ default via 10.0.2.2 dev eth0 proto dhcp src 10.0.2.15 metric 100
 192.168.255.0/30 dev eth1 proto kernel scope link src 192.168.255.1
 ```
 2. DNAT from inetRouter2 to the centralSerevr
+http://192.168.50.10:8080/
+<img width="479" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/034b8dfe-82e5-434a-b6f5-3d316baf6b27">
 
-3. Port knocking
+We can also check source ip address and a user-agent of the client:
+http://192.168.50.10:8080/inspect
+```
+...
+       location /inspect {
+            default_type text/plain;
+            return 200 "$remote_addr\n$http_user_agent";
+        }
+...
+```
+<img width="715" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/9e9870b1-90c2-4755-88f3-c993e256d262">
+
+`conntrack -L` check conntrack on the interRouter2 to see NAT translations:
+<img width="881" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/2984e7cb-41e4-44d9-809d-303a5ab6e4f9">
+
+We can also see relevant access logs on the NGINX server:
+<img width="723" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/00c94afd-bcd1-433e-a6fa-e8d486c4507f">
+
+4. Port knocking
+iptables rules before port knocking:
+<img width="728" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/0efe1a6e-924b-4cf8-bb20-f991ae53104e">
+
+
+Let's check the port knocking configuration from **centralRouter**
+<img width="735" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/5c9f7d3a-a290-4f39-817b-59a7e0eaf767">
 
 The script to "knock" to the sequence of ports:
 ```
 for x in 7000 8000 9000; do nc -zv 192.168.255.1 $x; done
 ```
+After the script has been used we could connect to the server, as far as the allowing rule has been applyed after the port was knocked:
+<img width="740" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/32ddc011-3031-48e5-b1ce-43a70dc20530">
+
