@@ -1,0 +1,6 @@
+Host borg_server
+    HostName {{ backup_srv_ip }}
+    User borg
+    IdentityFile /home/borg/.ssh/id_rsa
+    IdentitiesOnly yes
+    StrictHostKeyChecking no

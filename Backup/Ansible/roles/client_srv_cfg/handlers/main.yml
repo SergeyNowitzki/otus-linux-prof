@@ -1,0 +1,5 @@
+---
+# handlers file for borg client
+- name: Reload systemctl deamon
+  become: true
+  command: systemctl daemon-reload

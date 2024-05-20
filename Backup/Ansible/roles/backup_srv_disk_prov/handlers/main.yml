@@ -1,0 +1,8 @@
+---
+# handlers file backup disk role
+- name: Removing data
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ mount_point }}"

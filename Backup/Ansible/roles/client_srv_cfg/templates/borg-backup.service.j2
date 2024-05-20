@@ -1,0 +1,25 @@
+[Unit]
+Description=Borg Backup
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=borg
+Group=borg
+# Password
+Environment="BORG_PASSPHRASE=Otus1234"
+# Repo
+Environment="REPO=borg@{{ backup_srv_ip }}:{{ backup_dir }}"
+# Backup target
+Environment="BACKUP_TARGET={{ backup_tgt_dir }}"
+# Creating a backup
+ExecStart=/bin/borg create \
+    --stats                \
+    ${REPO}::etc-{now:%%Y-%%m-%%d_%%H:%%M:%%S} ${BACKUP_TARGET}
+# Verifying the backup
+ExecStart=/bin/borg check ${REPO}
+# Cleaning old backups
+ExecStart=/bin/borg prune \
+    --keep-daily  90      \
+    --keep-monthly 12     \
+    --keep-yearly  1       \
+    ${REPO}

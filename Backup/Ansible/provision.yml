@@ -1,0 +1,10 @@
+---
+- hosts: all
+  name: Backup config
+  become: true
+
+  roles:
+    - { role: basic_cfg, tags: tag1 }
+    - { role: backup_srv_disk_prov, when: "inventory_hostname in groups['BakcupSrv']", tags: tag2 }
+    - { role: backup_srv_cfg, when: "inventory_hostname in groups['BakcupSrv']", tags: tag3 }
+    - { role: client_srv_cfg, when: "inventory_hostname in groups['Clients']", tags: tag4 }

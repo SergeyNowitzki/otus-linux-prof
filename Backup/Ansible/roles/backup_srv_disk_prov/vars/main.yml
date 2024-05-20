@@ -1,0 +1,5 @@
+---
+# vars file for disk provisioning taks
+    mount_point: /var/backup/
+    disk_device: /dev/sdb
+    filesystem_type: ext4

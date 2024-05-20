@@ -1,0 +1,49 @@
+---
+# tasks file for my-mount-role
+- name: Check if the new disk is present
+  stat:
+    path: "{{ disk_device }}"
+  register: disk_status
+
+- name: Create a primary partition on the disk
+  become: true
+  block:
+    - name: Echo commands to create a new partition
+      shell: |
+        echo -e "n\np\n1\n\n\nw" | fdisk {{ disk_device }}
+      args:
+        executable: /bin/bash
+      register: fdisk_output
+      changed_when: "'Writing all changes to disk' in fdisk_output.stdout"
+      failed_when: "'failed' in fdisk_output.stdout"
+      ignore_errors: true
+
+    - name: Partprobe to re-read the partition table
+      command: partprobe {{ disk_device }}
+
+    - name: Wait for the partition to be available
+      pause:
+        seconds: 1
+
+  when: disk_status.stat.exists
+
+- name: Create filesystem on the new partition
+  filesystem:
+    fstype: "{{ filesystem_type }}"
+    dev: "{{ disk_device }}1"
+  when: disk_status.stat.exists
+
+- name: Create mount point
+  file:
+    path: "{{ mount_point }}"
+    state: directory
+    mode: '0755'
+
+- name: Mount the new partition
+  mount:
+    path: "{{ mount_point }}"
+    src: "{{ disk_device }}1"
+    fstype: "{{ filesystem_type }}"
+    state: mounted
+    opts: defaults
+  notify: Removing data

@@ -1,0 +1,5 @@
+---
+# vars file for client backup srv
+    backup_srv_ip: 192.168.99.111
+    backup_dir: /var/backup/
+    backup_tgt_dir: /etc

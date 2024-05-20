@@ -1,0 +1,60 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  # Define the main virtual machine
+  config.vm.define "backupServer" do |ubuntu|
+    ubuntu.vm.box = "generic/ubuntu2204"
+    ubuntu.vm.hostname = "backupServer"
+
+    # Setup private network
+    ubuntu.vm.network "private_network", ip: "192.168.99.111"
+
+    # VirtualBox specific configuration
+    ubuntu.vm.provider "virtualbox" do |vb|
+      # Name of the VM in VirtualBox
+      vb.name = "backupServer"
+
+      # Memory and CPU
+      vb.memory = "1024"
+      vb.cpus = 1
+
+      # Customize the VM to add an additional disk
+      unless File.exist?("ubuntu_ssd.vdi")
+        vb.customize ['createhd', '--filename', 'ubuntu_ssd.vdi', '--size', 2000] # Size in MB
+      end
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', 'ubuntu_ssd.vdi']
+    end
+    ubuntu.vm.provision "shell", inline: <<-SHELL
+        echo "ssh-rsa YOUR PUB KEY" >> /home/vagrant/.ssh/authorized_keys
+      SHELL
+  end
+
+  # backup client VMs
+  (1..1).each do |i|
+    config.vm.define "backupClient#{i}" do |ubuntu_vm|
+      # Box settings
+      ubuntu_vm.vm.box = "generic/ubuntu2204"
+      ubuntu_vm.vm.box_check_update = false
+
+      ubuntu_vm.vm.hostname = "backupClient#{i}"
+      ubuntu_vm.vm.network "private_network", ip: "192.168.99.12#{i}"
+
+      ubuntu_vm.vm.provider "virtualbox" do |vb|
+        vb.name = "backupClient#{i}"
+        vb.memory = "1024"
+        vb.cpus = '1'
+      end
+
+      ubuntu_vm.vm.provision "shell", inline: <<-SHELL
+        echo "ssh-rsa YOUR PUB KEY" >> /home/vagrant/.ssh/authorized_keys
+      SHELL
+      ubuntu_vm.vm.provision "ansible" do |ansible|
+          ansible.playbook = "Ansible/provision.yml"
+          ansible.inventory_path = "Ansible/inventories/hosts.ini"
+          ansible.host_key_checking = "false"
+          ansible.limit = "all"
+      end
+    end
+  end
+end

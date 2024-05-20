@@ -1,0 +1,3 @@
+---
+ansible_connection: ssh
+files_folder: ./files

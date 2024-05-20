@@ -1,0 +1,16 @@
+*filter
+:INPUT ACCEPT [90:8713]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [54:7429]
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 8080 -j ACCEPT
+COMMIT
+*nat
+:PREROUTING ACCEPT [1:44]
+:INPUT ACCEPT [1:44]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+-A PREROUTING -i eth2 -p tcp --dport 8080 -j DNAT --to-destination 192.168.0.2:80
+-A POSTROUTING -s 192.168.0.2/32 -o eth2 -p tcp --sport 80 -j SNAT --to-source 192.168.50.10:8080
+COMMIT

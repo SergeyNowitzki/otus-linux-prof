@@ -1,0 +1,106 @@
+---
+- name: Install Borgbackup
+  apt:
+    name: borgbackup
+    state: present
+
+- name: Adding User with a directory
+  user:
+    name: borg
+    comment: "Borg Backup User"
+    shell: /bin/bash
+    createhome: yes
+    system: yes
+    home: /home/borg
+
+- name: Create a directory .ssh
+  file:
+    path: /home/borg/.ssh
+    state: directory
+    owner: borg
+    group: borg
+    mode: 0700
+
+- name: Generate SSH config from template for the borg user
+  template:
+    src: ssh_config.j2
+    dest: /home/borg/.ssh/config
+    owner: borg
+    group: borg
+    mode: 0600
+
+- name: Ensure SSH key pair is generated for the user
+  community.crypto.openssh_keypair:
+    path: "/home/borg/.ssh/id_rsa"
+    size: 2048
+    type: rsa
+    state: present
+
+- name: Change permissions for SSH key
+  file:
+    path: /home/borg/.ssh/id_rsa
+    owner: borg
+    group: borg
+    mode: 0600
+
+- name: Fetch public SSH key
+  ansible.builtin.slurp:
+    src: "/home/borg/.ssh/id_rsa.pub"
+  register: ssh_key_pub
+
+- name: Add SSH public key to borg server
+  ansible.builtin.authorized_key:
+    user: borg
+    state: present
+    key: "{{ ssh_key_pub['content'] | b64decode }}"
+  delegate_to: "{{ backup_srv_ip }}"
+
+- name: Add remote SSH key to known hosts
+  shell: ssh-keyscan -H {{ backup_srv_ip }} >> /home/borg/.ssh/known_hosts
+
+- name: Change permissions for SSH known_hosts
+  file:
+    path: /home/borg/.ssh/known_hosts
+    owner: borg
+    group: borg
+    mode: 0600
+
+- name: Borg init repository
+  command: "sudo -H -u borg bash -c 'borg init -e none borg@{{ backup_srv_ip }}:{{ backup_dir }}'"
+
+- name: Template borg-backup.service to /etc/systemd/system
+  template:
+    src: borg-backup.service.j2
+    dest: /etc/systemd/system/borg-backup.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Template borg-backup.timer to /etc/systemd/system
+  template:
+    src: borg-backup.timer.j2
+    dest: /etc/systemd/system/borg-backup.timer
+    owner: root
+    group: root
+    mode: 0644
+  notify: 
+    - Reload systemctl deamon
+
+- name: Enable borg-backup.service
+  systemd:
+    name: borg-backup.service
+    state: started
+    daemon_reload: yes
+  ignore_errors: true
+
+- name: Enable borg-backup.timer
+  systemd:
+    name: borg-backup.timer
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Start borg-backup.timer
+  systemd:
+    name: borg-backup.timer
+    state: started
