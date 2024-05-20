@@ -76,6 +76,10 @@ The second role `backup_srv_disk_prov` provisions an additional **2GB** disk for
 ```
 After creating the mount point, handler `Removing data` makes sure that the directory is empty.
 
+<img width="566" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/2faa4597-7c99-41ef-8540-cd41726ed05c">
+
+<img width="584" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/69674f2a-5609-4dfd-b12c-8148794f52d4">
+
 ### Backup server Brog configuration
 Installs and configures the `borgbackup` service on the **Backup Server**, including creating the necessary user and SSH setup. As far as **Borg** operates via the SSH protocol, `.ssh` directory and all necessary files should be created in the `/home/borg` directory.
 
@@ -101,6 +105,11 @@ This setup ensures that the backup tasks are run at predefined intervals, automa
 
 ### Verifying Configuration of the playbook
 1. List the backup from the client on the server `borg list borg@192.168.99.111:/var/backup/`
-2. Check a list of backup files `borg list borg@192.168.99.111:/var/backup/::etc-2024-05-20_07:12:57`
-3. Copy file from the backup `borg extract borg@192.168.99.111:/var/backup/::etc-2024-05-20_07:12:57 etc/hostname`
-4. Check timers `systemctl list-timers --all`
+   <img width="984" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/aba1dbf6-8b05-4c53-b351-6ccf6c89e7c1">
+   <img width="455" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/9141dfc4-52fa-42bb-988c-aa4945b8363d">
+3. Check a list of backup files `borg list borg@192.168.99.111:/var/backup/::etc-2024-05-20_07:12:57`
+   <img width="893" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/d38e9e1c-2175-4baa-96b5-ebea4b5a8ab7">
+5. Copy file from the backup `borg extract borg@192.168.99.111:/var/backup/::etc-2024-05-20_07:12:57 etc/hostname`
+   <img width="849" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/954ca60f-d011-45ac-ae73-4ee1b8036b33">
+7. Check timers `systemctl list-timers --all`
+   <img width="969" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/9e87ce3e-8f3d-4adb-b703-ab6ae63789dc">
