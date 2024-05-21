@@ -2,6 +2,7 @@
 ## TASK 22: Dynamic Routing OSPF
 
 ### Network Topology
+<img width="548" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/d7d93116-8416-4daa-8123-58ce516d5d4d">
 
 ### Basic Configuration
 apt install vim traceroute tcpdump net-tools
