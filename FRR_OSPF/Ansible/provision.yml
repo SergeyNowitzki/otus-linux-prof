@@ -1,0 +1,10 @@
+---
+- hosts: all
+  name: Backup config
+  become: true
+
+  roles:
+    - { role: basic_cfg, tags: tag1 }
+    - { role: basic_frr, tags: tag2 }
+    - { role: frr_rpf, when: "ansible_hostname == 'Router1'", tags: tag3 }
+    - { role: frr_equal_cost, when: "ansible_hostname == 'Router2'", tags: tag4 }

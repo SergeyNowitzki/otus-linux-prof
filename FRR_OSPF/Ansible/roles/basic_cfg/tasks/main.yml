@@ -1,0 +1,41 @@
+---
+- name: Check and print OS Version
+  debug:
+    var: ansible_os_family
+
+- name: Install Packets
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  loop:
+    - traceroute
+    - wget
+    - net-tools
+    - curl
+    - vim
+    - ntp
+    - conntrack
+    - tcpdump
+
+- name: Disable ufw
+  service:
+    name: ufw
+    state: stopped
+    enabled: false
+
+- name: Start NTP Service
+  service:
+    name: ntp
+    state: started
+    enabled: yes
+
+- name: Copy NTP Configuration
+  copy:
+    src: ntp.conf
+    dest: /etc/ntp.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart ntp

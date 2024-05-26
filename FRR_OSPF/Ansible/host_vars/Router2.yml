@@ -1,0 +1,26 @@
+---
+interfaces:
+  - interface: eth1
+    ipv4: 10.0.10.2/30
+    ospf_cost: 1000
+    description: "r1-r2"
+  - interface: eth2
+    ipv4: 10.0.11.2/30
+    ospf_cost: 100
+    description: "r2-r3"
+  - interface: eth3
+    ipv4: 192.168.20.1/24
+    ospf_cost: 100
+    description: "net2"
+
+ospf:
+  - network: 10.0.10.0/30
+    area: 0
+  - network: 10.0.11.0/30
+    area: 0
+  - network: 192.168.20.0/24
+    area: 0
+router_id: 2.2.2.2
+neighbors:
+  - 10.0.10.1
+  - 10.0.11.1

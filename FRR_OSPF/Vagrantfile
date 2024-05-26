@@ -1,0 +1,62 @@
+MACHINES = {
+  :Router1 => {
+        :box_name => "generic/ubuntu2204",
+        :vm_name => "Router1",
+        :net => [
+                   ["10.0.10.1",      2, "255.255.255.252",  "r1-r2"],
+                   ["10.0.12.1",      3, "255.255.255.252",  "r1-r3"],
+                   ["192.168.10.1",   4, "255.255.255.0",    "net1"],
+                   ["192.168.99.101", 5, "255.255.255.0"],
+                ]
+  },
+  :Router2 => {
+        :box_name => "generic/ubuntu2204",
+        :vm_name => "Router2",
+        :net => [
+                   ["10.0.10.2",      2, "255.255.255.252",  "r1-r2"],
+                   ["10.0.11.2",      3, "255.255.255.252",  "r2-r3"],
+                   ["192.168.20.1",   4, "255.255.255.0",    "net2"],
+                   ["192.168.99.102", 5, "255.255.255.0"],
+                ]
+  },
+  :Router3 => {
+        :box_name => "generic/ubuntu2204",
+        :vm_name => "Router3",
+        :net => [
+                   ["10.0.11.1",      2, "255.255.255.252",  "r2-r3"],
+                   ["10.0.12.2",      3, "255.255.255.252",  "r1-r3"],
+                   ["192.168.30.1",   4, "255.255.255.0",    "net3"],
+                   ["192.168.99.103", 5, "255.255.255.0"],
+                ]
+  }
+}
+Vagrant.configure("2") do |config|
+  MACHINES.each do |boxname, boxconfig|
+    config.vm.define boxname do |box|
+      box.vm.box = boxconfig[:box_name]
+      box.vm.host_name = boxconfig[:vm_name]
+      
+      box.vm.provider "virtualbox" do |v|
+        v.memory = 768
+        v.cpus = 1
+       end
+      boxconfig[:net].each do |ipconf|
+        box.vm.network("private_network", ip: ipconf[0], adapter: ipconf[1], netmask: ipconf[2], virtualbox__intnet: ipconf[3])
+      end
+      if boxconfig.key?(:public)
+        box.vm.network "public_network", boxconfig[:public]
+      end
+      box.vm.provision "shell", inline: <<-SHELL
+        echo "ssh-rsa YOUR PUB KEY" >> /home/vagrant/.ssh/authorized_keys
+      SHELL
+#      if boxconfig[:vm_name] == "Router3"
+#        box.vm.provision "ansible" do |ansible|
+#          ansible.playbook = "Ansible/provision.yml"
+#          ansible.inventory_path = "Ansible/inventories/hosts.ini"
+#          ansible.host_key_checking = "false"
+#          ansible.limit = "all"
+#        end
+#      end
+    end
+  end
+end

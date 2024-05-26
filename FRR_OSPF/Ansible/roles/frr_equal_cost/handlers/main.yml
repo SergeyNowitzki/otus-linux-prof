@@ -1,0 +1,9 @@
+---
+# handlers file for frr rpf
+- name: sysctl apply
+  command: sysctl -p
+
+- name: restart FRR
+  service:
+    name: frr
+    state: restarted
