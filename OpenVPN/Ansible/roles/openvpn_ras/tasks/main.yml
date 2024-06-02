@@ -1,0 +1,149 @@
+---
+- block:    #================= RAS OpenVPN SRV Config =================
+  - name: Install Packets
+    apt:
+      name: "{{ item }}"
+      state: present
+      update_cache: true
+    loop:
+      - easy-rsa
+
+  - name: Ensure /etc/openvpn directory exists
+    file:
+      path: /etc/openvpn
+      state: directory
+
+  - name: Remove PKI directory if it exists
+    file:
+      path:  /etc/openvpn/pki
+      state: absent
+
+  - name: Initialize the PKI
+    shell: |
+      cd /etc/openvpn
+      /usr/share/easy-rsa/easyrsa init-pki
+    args:
+      chdir: /etc/openvpn
+
+  - name: Build the CA
+    ansible.builtin.shell: |
+      cd /etc/openvpn
+      echo 'rasvpn' | /usr/share/easy-rsa/easyrsa build-ca nopass
+    args:
+      chdir: /etc/openvpn
+
+  - name: Verify the CA files exist
+    ansible.builtin.stat:
+      path: /etc/openvpn/pki/index.txt
+    register: ca_files
+
+  - name: Fail if CA files are missing
+    fail:
+      msg: "CA files are missing, please check the CA build step."
+    when: not ca_files.stat.exists
+
+  - name: Generate server certificate request
+    shell: |
+      cd /etc/openvpn
+      echo 'rasvpn' | /usr/share/easy-rsa/easyrsa gen-req server nopass
+    args:
+      chdir: /etc/openvpn
+
+  - name: Sign the server certificate request
+    shell: |
+      cd /etc/openvpn
+      echo 'yes' | /usr/share/easy-rsa/easyrsa sign-req server server
+    args:
+      chdir: /etc/openvpn
+
+  - name: Generate Diffie-Hellman parameters
+    shell: |
+      cd /etc/openvpn
+      /usr/share/easy-rsa/easyrsa gen-dh
+    args:
+      chdir: /etc/openvpn
+
+  - name: Generate OpenVPN server key
+    shell: |
+      cd /etc/openvpn
+      openvpn --genkey secret ca.key
+    args:
+      chdir: /etc/openvpn
+
+  - name: Generate client certificate request
+    shell: |
+      cd /etc/openvpn
+      echo 'client' | /usr/share/easy-rsa/easyrsa gen-req client nopass
+    args:
+      chdir: /etc/openvpn
+
+  - name: Sign the client certificate request
+    shell: |
+      cd /etc/openvpn
+      echo 'yes' | /usr/share/easy-rsa/easyrsa sign-req client client
+    args:
+      chdir: /etc/openvpn
+    notify: Restart OpenVPN service
+
+  - name: Copy PKI files to the Ansible control node
+    fetch:
+      src: "{{ item }}"
+      dest: roles/openvpn_ras/files/
+      flat: yes
+    loop:
+      - /etc/openvpn/pki/ca.crt
+      - /etc/openvpn/pki/issued/client.crt
+      - /etc/openvpn/pki/private/client.key
+
+  - name: Add route configuration to client file
+    lineinfile:
+      path: /etc/openvpn/client/client
+      line: 'iroute 10.10.10.0 255.255.255.0'
+      create: yes
+
+  - name: Copy OpenVPN config file to the server
+    copy:
+      src: server.conf
+      dest: /etc/openvpn/server.conf
+      owner: root
+      group: root
+      mode: 0644
+    notify: Restart OpenVPN service
+
+  when: inventory_hostname in groups['openvpn_srv']
+
+- block:    #================= RAS OpenVPN CLIENT Config =================
+  - name: Copy PKI files to the OpenVPN client
+    copy:
+      src: "{{ item }}"
+      dest: /etc/openvpn/client
+      owner: root
+      group: root
+      mode: 0644
+    loop:
+      - ca.crt
+      - client.crt
+      - client.key
+  
+  - name: Remove old OpenVPN config file
+    file:
+      path: /etc/openvpn/server.conf
+      state: absent
+
+  - name: Generate OpenVPN config file to the server
+    template:
+      src: client.conf.j2
+      dest: /etc/openvpn/client/client.conf
+      owner: root
+      group: root
+      mode: 0644
+    notify: Stop OpenVPN service
+
+  - name: Check connection to the server
+    ansible.builtin.shell: |
+      cd /etc/openvpn/client
+      openvpn --config client.conf &
+    args:
+      chdir: /etc/openvpn/client
+  
+  when: inventory_hostname in groups['openvpn_cln']

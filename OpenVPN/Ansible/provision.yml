@@ -1,0 +1,10 @@
+---
+- hosts: all
+  name: Backup config
+  become: true
+
+  roles:
+    - { role: basic_cfg, tags: tag1 }
+    - { role: openvpn_srv, when: "inventory_hostname in groups['openvpn_srv']", tags: tag2 }
+    - { role: openvpn_cln, when: "inventory_hostname in groups['openvpn_cln']", tags: tag3 }
+    - { role: openvpn_ras, tags: tag4 }

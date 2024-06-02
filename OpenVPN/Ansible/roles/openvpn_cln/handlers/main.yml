@@ -1,0 +1,11 @@
+---
+# handlers file for opensrv cln
+- name: Restart OpenVPN service
+  service:
+    name: openvpn@server
+    state: restarted
+
+- name: Stop OpenVPN service
+  service:
+    name: openvpn
+    state: stopped

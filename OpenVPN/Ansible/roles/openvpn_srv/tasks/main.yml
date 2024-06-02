@@ -1,0 +1,34 @@
+---
+- name: Generate OpenVPN key
+  command: openvpn --genkey secret /etc/openvpn/static.key
+  args:
+    creates: /etc/openvpn/static.key
+
+- name: Copy the OpenVPN key to the Ansible control node openvpn_cln role
+  fetch:
+    src: /etc/openvpn/static.key
+    dest: roles/openvpn_cln/files/static.key
+    flat: yes
+
+- name: Copy openvpn service.unit file to the server
+  copy:
+    src: openvpn.service
+    dest: /etc/systemd/system/openvpn@.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy OpenVPN config file to the server
+  copy:
+    src: server.conf
+    dest: /etc/openvpn/server.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart OpenVPN service
+
+- name: Start and enable OpenVPN service
+  service:
+    name: openvpn@server
+    state: started
+    enabled: true

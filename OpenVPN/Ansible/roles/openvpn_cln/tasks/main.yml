@@ -1,0 +1,31 @@
+---
+- name: Copy the OpenVPN key to an openvpn client
+  copy:
+    src: static.key
+    dest:  /etc/openvpn/static.key
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copy openvpn service.unit file to the server
+  copy:
+    src: openvpn.service
+    dest: /etc/systemd/system/openvpn@.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Generate OpenVPN config file to the server
+  template:
+    src: server.conf.j2
+    dest: /etc/openvpn/server.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart OpenVPN service
+
+- name: Start and enable OpenVPN service
+  service:
+    name: openvpn@server
+    state: started
+    enabled: true
