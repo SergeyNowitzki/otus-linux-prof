@@ -81,6 +81,8 @@ In summary, tun is typically faster and more efficient for routing IP traffic, w
 
 We can c compare using different type of interfaces with the `iperf3` utility.
 On the server side in the **tap** mode:
+<img width="852" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/1998663b-34d7-4c70-81c6-0a4b88e36631">
+
 ```
 iperf3 -s &
 ```
@@ -88,8 +90,10 @@ On the client side:
 ```
 iperf3 -c 10.10.10.1 -t 40 -i 5
 ```
+<img width="648" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/1a1dadbc-4e94-4de3-965b-80ecaa3ef884">
 
 Using the same command in the **tun** mode:
+<img width="637" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/68a4cdea-4f4a-474d-b48f-7da0e10eba30">
 
 Although after testing the speed between the client and server with different types of interfaces, we can see a slight difference which proves the theory.
 
@@ -114,3 +118,5 @@ After copying the files, the connection can be checked with `openvpn --config /e
 ```
 ping -c 4 10.10.10.1
 ```
+<img width="903" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/7c6d962c-8ea0-48ae-bb9c-12a67be27c92">
+<img width="982" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/e8d2956d-a15a-459b-a252-00547b88b4b5">
