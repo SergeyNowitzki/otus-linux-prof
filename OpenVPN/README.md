@@ -93,6 +93,7 @@ iperf3 -c 10.10.10.1 -t 40 -i 5
 <img width="648" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/1a1dadbc-4e94-4de3-965b-80ecaa3ef884">
 <br>
 Using the same command in the **tun** mode:
+<br>
 <img width="637" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/68a4cdea-4f4a-474d-b48f-7da0e10eba30">
 
 Although after testing the speed between the client and server with different types of interfaces, we can see a slight difference which proves the theory.
