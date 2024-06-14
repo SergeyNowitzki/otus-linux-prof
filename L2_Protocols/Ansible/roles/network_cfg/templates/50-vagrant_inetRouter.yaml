@@ -1,0 +1,27 @@
+---
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth1:
+      dhcp4: no
+    eth2:
+      dhcp4: no
+    eth3:
+      addresses:
+      - 192.168.99.10/24
+  bonds:
+    bond0:
+      dhcp4: no
+      interfaces:
+        - eth1
+        - eth2
+      parameters:
+        mode: 802.3ad
+        lacp-rate: fast
+        mii-monitor-interval: 100
+      addresses:
+        - 192.168.255.1/30
+      routes:
+        - to: 192.168.0.0/16
+          via: 192.168.255.2

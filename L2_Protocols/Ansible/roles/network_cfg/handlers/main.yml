@@ -1,0 +1,10 @@
+---
+# handlers file for corertr_cfg
+- name: sysctl reload
+  command: sysctl -p
+
+- name: Netplan apply
+  command: netplan apply
+
+- name: Iptables restore
+  shell: "/sbin/iptables-restore < /etc/iptables_rules.ipv4"

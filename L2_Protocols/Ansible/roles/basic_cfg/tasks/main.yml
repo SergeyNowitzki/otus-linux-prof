@@ -1,0 +1,48 @@
+---
+- name: Check and print OS Version
+  debug:
+    var: ansible_os_family
+
+- name: Install Packets
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - wget
+    - net-tools
+    - curl
+    - vim
+    - ntp
+    - conntrack
+    - lldpd
+    - bridge-utils
+    - vlan
+
+- name: Disable ufw
+  service:
+    name: ufw
+    state: stopped
+    enabled: false
+
+- name: start LLDP
+  service:
+    name: lldpd
+    state: started
+    enabled: yes
+
+- name: Start NTP Service
+  service:
+    name: ntp
+    state: started
+    enabled: yes
+
+- name: Copy NTP Configuration
+  copy:
+    src: ntp.conf
+    dest: /etc/ntp.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart ntp

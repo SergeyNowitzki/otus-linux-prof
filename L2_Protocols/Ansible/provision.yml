@@ -1,0 +1,8 @@
+---
+- hosts: all
+  name: LACP and VLAN config
+  become: true
+
+  roles:
+    - { role: basic_cfg, tags: tag1 }
+    - { role: network_cfg, tags: tag2 }
