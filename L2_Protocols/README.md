@@ -1,6 +1,8 @@
 # otus-linux-proffesional
 ## TASK 25: L2 Protocols (VLAN, LACP)
 
+<img width="645" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/13588765-9d72-469d-b9b5-19de03b010a9">
+
 This scenario does not work properly in a virtual environment. The LACP bond is up, but traffic cannot pass through the router. Although the bond interfaces are UP, L3 connectivity is absent.
 The following output shows the status of the bond interface (`bond0`):
 ```
