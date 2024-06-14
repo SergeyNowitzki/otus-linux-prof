@@ -113,3 +113,5 @@ The IP configuration for the VLAN interfaces is as follows:
 **office1Router** is connected to a dedicated interface to all clients and servers. Below is the verification of reachability between clients.
 
 Verifying reachability between clients:
+<img width="879" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/24287939-3e23-44dd-94c3-9cfb3bf5aa5d">
+
