@@ -3,8 +3,17 @@
 
 
 WordPress: http://localhost
+<img width="1167" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/98f26693-0422-406a-803e-4d01cfbd179d">
+
+
 Flask: http://localhost/flask
+<img width="1000" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/72b7bf96-18dd-40f8-af1b-935f2c218635">
+
+
 NodeJs: http://localhost/node
+
+<img width="991" alt="image" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/7833d80e-71d0-4632-b52b-7abce0f1e95f">
+
 
 dynamic_web_compose/
 ├── .env
@@ -114,5 +123,3 @@ https://github.com/mrliptontea/PurpleMine2/blob/master/README.md
 To install PurpleMine, just download .zip and unpack it to your Redmine's public/themes folder.
 Then go to Redmine > Administration > Settings > Display and select PurpleMine2 from the list and save the changes.
 
-http://loaclhost:3000
-<img width="1327" alt="Redmine_theme_bl" src="https://github.com/SergeyNowitzki/otus-linux-prof/assets/39993377/84a515c2-0072-45a2-8e92-9a2a83d96ae7">
