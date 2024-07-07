@@ -1,0 +1,18 @@
+# This file is used by pip to install required python packages
+# Usage: pip install -r requirements.txt
+
+# Flask Framework
+Flask==3.0.3
+#uWSGI==2.0.26
+
+# Flask Packages
+Flask-Login==0.6.3
+Flask-Migrate==4.0.7
+Flask-Script==2.0.6
+Flask-SQLAlchemy==3.1.1
+Flask-WTF==1.2.1
+Flask-Auth-User==1.0.2
+
+# Automated tests
+pytest==8.2.2
+pytest-cov==5.0.0
