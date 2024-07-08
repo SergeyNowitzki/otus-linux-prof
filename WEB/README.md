@@ -4,21 +4,22 @@
 Dynamic Web Compose is a Docker-based project that integrates a WordPress site, a Flask application, and a Node.js application, orchestrated using Docker Compose. This setup leverages MySQL for the database and Nginx as a reverse proxy to manage requests to different services.
 
 ### Project Structure
-dynamic_web_compose/<b>
-├── .env<b>
-├── docker-compose.yaml<b>
-├── flask-app<b>
-│   ├── Dockerfile<b>
-│   ├── __pycache__<b>
-│   ├── main.py<b>
-│   └── requirements.txt<b>
-├── nginx-conf<b>
-│   └── nginx.conf<b>
-└── node-app<b>
-    ├── Dockerfile<b>
-    ├── package.json<b>
-    └── server.js<b>
-
+```
+dynamic_web_compose/
+├── .env
+├── docker-compose.yaml
+├── flask-app
+│   ├── Dockerfile
+│   ├── __pycache__
+│   ├── main.py
+│   └── requirements.txt
+├── nginx-conf
+│   └── nginx.conf
+└── node-app
+    ├── Dockerfile
+    ├── package.json
+    └── server.js
+```
 ### Deploying the project
 `docker-compose up -d --build`
 
