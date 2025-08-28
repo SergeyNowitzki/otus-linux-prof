@@ -4,6 +4,7 @@
   become: true
 
   roles:
+    - { role: centos7_repo, tags: tag0 }
     - { role: create_raid, tags: tag1 }
     - { role: remove_disk, tags: tag2 }
     - { role: adding_disk, tags: tag3 }

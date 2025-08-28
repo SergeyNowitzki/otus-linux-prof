@@ -1,0 +1,30 @@
+---
+- name: Make a backup of /etc/yum.repos.d/CentOS-Base.repo
+  ansible.builtin.copy:
+    src: /etc/yum.repos.d/CentOS-Base.repo
+    dest: /etc/yum.repos.d/CentOS-Base.repo.bak
+    remote_src: true
+    force: false
+    mode: '0644'
+
+- name: Copy CentOS-Base.repo to /etc/yum.repos.d/
+  ansible.builtin.copy:
+    src: CentOS-Base.repo
+    dest: /etc/yum.repos.d/CentOS-Base.repo
+    mode: '0644'
+
+- name: Clean yum cache
+  ansible.builtin.yum:
+    name: '*'
+    state: present
+    update_cache: true
+  register: yum_clean_result
+  failed_when:
+    - yum_clean_result.failed is defined
+    - yum_clean_result.failed
+    - '"No package * available." not in yum_clean_result.msg'
+
+- name: Make cache
+  ansible.builtin.yum:
+    update_cache: true
+  changed_when: false
