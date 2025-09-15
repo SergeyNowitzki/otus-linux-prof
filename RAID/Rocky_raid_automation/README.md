@@ -1,3 +1,4 @@
+```
 [root@raid-rocky ~]# cat /etc/os-release 
 NAME="Rocky Linux"
 VERSION="8.9 (Green Obsidian)"
@@ -99,3 +100,4 @@ Consistency Policy : bitmap
        2       8        2        0      active sync   /dev/sda2
        1       8       18        1      active sync   /dev/sdb2
 [root@raid-rocky ~]#
+```
