@@ -28,3 +28,16 @@
   ansible.builtin.yum:
     update_cache: true
   changed_when: false
+
+- name: Installation Software and Components
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+    - vim
+    - net-tools
+    - mdadm
+    - smartmontools
+    - hdparm
+    - gdisk

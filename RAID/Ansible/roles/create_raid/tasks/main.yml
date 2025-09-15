@@ -3,19 +3,6 @@
   debug:
     var: ansible_os_family
 
-- name: Installation Software and Components
-  yum:
-    name: "{{ packages }}"
-    state: present
-  vars:
-    packages:
-    - vim
-    - net-tools
-    - mdadm
-    - smartmontools
-    - hdparm
-    - gdisk
-
 # Checking for any existing raid arrays
 - name: Checking Status Of Array(s)
   shell: "cat /proc/mdstat | grep {{ item.name }}"
