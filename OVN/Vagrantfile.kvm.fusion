@@ -1,0 +1,53 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Use single quotes to prevent interpretation
+SSH_PUBLIC_KEY = 'ssh-rsa PUB rsa'
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-22.04"
+  
+  config.vm.define "test-kvm" do |node|
+    node.vm.hostname = "test-kvm"
+    node.vm.network "private_network", ip: "192.168.99.10"
+    
+    node.vm.provider "vmware_desktop" do |v|
+      # REMOVED: v.name - this doesn't exist in VMware provider
+      v.vmx["displayName"] = "test-kvm"  # Use this instead
+      v.memory = "2048"
+      v.cpus = 2
+      # Enable nested virtualization
+      v.vmx["vhv.enable"] = "TRUE"
+    end
+    
+    node.vm.provision "shell", inline: <<-SHELL
+      # Add SSH key
+      mkdir -p /home/vagrant/.ssh
+      echo '#{SSH_PUBLIC_KEY}' >> /home/vagrant/.ssh/authorized_keys
+      chmod 700 /home/vagrant/.ssh
+      chmod 600 /home/vagrant/.ssh/authorized_keys
+      chown -R vagrant:vagrant /home/vagrant/.ssh
+      
+      echo "SSH key added"
+      
+      # FIXED: Ubuntu uses apt, not dnf (dnf is for Rocky/RHEL)
+      echo "=== Testing Nested Virtualization ==="
+      
+      # Check for VMX flag
+      if grep -q vmx /proc/cpuinfo; then
+        echo "✅ SUCCESS: VMX flag found!"
+        grep -m1 vmx /proc/cpuinfo
+      else
+        echo "❌ FAIL: No VMX flag found"
+      fi
+      
+      # Install KVM tools (Ubuntu syntax)
+      apt-get update -qq
+      apt-get install -y cpu-checker qemu-kvm libvirt-daemon-system
+      
+      echo ""
+      echo "=== KVM Test ==="
+      kvm-ok
+    SHELL
+  end
+end

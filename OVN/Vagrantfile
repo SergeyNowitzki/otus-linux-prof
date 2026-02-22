@@ -1,34 +1,31 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-# CONFIGURATION
-# Replace with your actual SSH public key
-SSH_PUBLIC_KEY = "ssh-rsa key"
+SSH_PUBLIC_KEY = 'ssh-rsa pub key'
 
 Vagrant.configure("2") do |config|
   
-  # Choose OS - Ubuntu 22.04 (change if you prefer Rocky/Debian)
-  config.vm.box = "ubuntu/jammy64"
+  # Use Ubuntu 22.04 box that supports VMware
+  config.vm.box = "bento/ubuntu-22.04"
   
-  # VirtualBox provider defaults
-  config.vm.provider "virtualbox" do |vb|
-    vb.memory = "2048"
-    vb.cpus = 2
-    # Enable nested virtualization for KVM
-    vb.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
-    # Enable promiscuous mode for tunnel traffic
-    vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+  # Default provider settings
+  config.vm.provider "vmware_desktop" do |v|
+    v.gui = false
+    v.vmx["ethernet0.virtualDev"] = "vmxnet3"
   end
 
-  # Disable default synced folder
-  config.vm.synced_folder ".", "/vagrant", disabled: false
-
-  # ============================================
   # Common provisioning for all nodes
-  # ============================================
   config.vm.provision "shell", inline: <<-SHELL
-    # Update package cache
-    apt-get update
+    # Add SSH key
+    mkdir -p /home/vagrant/.ssh
+    echo '#{SSH_PUBLIC_KEY}' >> /home/vagrant/.ssh/authorized_keys
+    chmod 700 /home/vagrant/.ssh
+    chmod 600 /home/vagrant/.ssh/authorized_keys
+    chown -R vagrant:vagrant /home/vagrant/.ssh
+    
+    # Update system
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq
     
     # Install basic tools
     apt-get install -y \
@@ -38,82 +35,63 @@ Vagrant.configure("2") do |config|
       vim \
       curl \
       wget \
-      bridge-utils
+      bridge-utils \
+      iputils-ping
     
-    # Enable IP forwarding (needed for routing)
+    # Enable IP forwarding
     echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
     sysctl -p
-    
-    # Add SSH public key for easy access
-    echo "#{SSH_PUBLIC_KEY}" >> /home/vagrant/.ssh/authorized_keys
-    
-    # Set proper permissions
-    chmod 600 /home/vagrant/.ssh/authorized_keys
-    chown vagrant:vagrant /home/vagrant/.ssh/authorized_keys
     
     echo "Common provisioning completed"
   SHELL
 
-  # ============================================
+  # ========================================
   # OVN Central Node
-  # ============================================
+  # ========================================
   config.vm.define "ovn-central" do |central|
     central.vm.hostname = "ovn-central"
+    # Using NAT only - no private network to avoid vmnet issues
     
-    # Management network (NAT) - automatically created by Vagrant
-    # This gives internet access
-    
-    # Private network for OVN tunnels (your 192.168.99.0/24)
-    central.vm.network "private_network",
-      ip: "192.168.99.10"
-    
-    central.vm.provider "virtualbox" do |vb|
-      vb.name = "ovn-central"
-      vb.memory = "2048"
-      vb.cpus = 2
+    central.vm.provider "vmware_desktop" do |v|
+      v.vmx["displayName"] = "ovn-central"
+      v.memory = "2048"
+      v.cpus = 2
     end
     
-    # Install OVN Central packages only
     central.vm.provision "shell", inline: <<-SHELL
       echo "Installing OVN Central components..."
       
-      # Install OVN Central package
-      # This includes: ovn-nb, ovn-sb, ovn-northd
+      # Install OVN Central and OVS
       apt-get install -y openvswitch-switch ovn-central
       
-      echo "OVN Central packages installed"
-      echo "Services NOT started yet - we'll configure manually"
-      echo ""
-      echo "Next steps:"
-      echo "1. Start OVN services"
-      echo "2. Configure remote access"
+      # Start services
+      systemctl start openvswitch-switch
+      systemctl enable openvswitch-switch
+      
+      echo "OVN Central installation completed"
+      echo "Configure OVN Central manually after all VMs are up"
     SHELL
   end
 
-  # ============================================
+  # ========================================
   # Compute Node 1
-  # ============================================
+  # ========================================
   config.vm.define "compute-1" do |compute1|
     compute1.vm.hostname = "compute-1"
     
-    # Private network for tunnels
-    compute1.vm.network "private_network",
-      ip: "192.168.99.11"
-    
-    compute1.vm.provider "virtualbox" do |vb|
-      vb.name = "compute-1"
-      vb.memory = "3072"  # More RAM for running VMs
-      vb.cpus = 2
+    compute1.vm.provider "vmware_desktop" do |v|
+      v.vmx["displayName"] = "compute-1"
+      v.memory = "3072"
+      v.cpus = 2
+      # CRITICAL: Enable nested virtualization for KVM
+      v.vmx["vhv.enable"] = "TRUE"
     end
     
-    # Install packages only - NO configuration yet
     compute1.vm.provision "shell", inline: <<-SHELL
       echo "Installing OVS, OVN host, and KVM packages..."
       
-      # Install OVS and OVN host components
-      apt-get install -y \
-        openvswitch-switch \
-        ovn-host
+      # Install OVS and OVN
+      apt-get install -y openvswitch-switch ovn-host
       
       # Install KVM and libvirt
       apt-get install -y \
@@ -121,62 +99,83 @@ Vagrant.configure("2") do |config|
         libvirt-daemon-system \
         libvirt-clients \
         virtinst \
-        cpu-checker
+        virt-manager \
+        cpu-checker \
+        bridge-utils
       
-      # Add vagrant user to libvirt group
+      # Add vagrant to libvirt group
       usermod -aG libvirt vagrant
       
-      # Check if KVM is available
-      kvm-ok || echo "Warning: KVM may not be available (nested virt)"
+      # Start services
+      systemctl start openvswitch-switch
+      systemctl enable openvswitch-switch
+      systemctl start libvirtd
+      systemctl enable libvirtd
       
-      echo "Packages installed on compute-1"
-      echo "Services NOT configured yet"
+      # Verify KVM
       echo ""
-      echo "Installed components:"
-      echo "  - Open vSwitch (openvswitch-switch)"
-      echo "  - OVN host agent (ovn-host)"
-      echo "  - KVM hypervisor (qemu-kvm)"
-      echo "  - Libvirt (libvirt-daemon-system)"
+      echo "=== Verifying KVM Support ==="
+      if kvm-ok 2>&1 | grep -q "KVM acceleration can be used"; then
+        echo "✅ KVM is working!"
+      else
+        echo "⚠️  KVM check:"
+        kvm-ok
+      fi
+      
+      echo "Compute-1 installation completed"
     SHELL
   end
 
-  # ============================================
+  # ========================================
   # Compute Node 2
-  # ============================================
+  # ========================================
   config.vm.define "compute-2" do |compute2|
     compute2.vm.hostname = "compute-2"
     
-    # Private network for tunnels
-    compute2.vm.network "private_network",
-      ip: "192.168.99.12"
-    
-    compute2.vm.provider "virtualbox" do |vb|
-      vb.name = "compute-2"
-      vb.memory = "3072"
-      vb.cpus = 2
+    compute2.vm.provider "vmware_desktop" do |v|
+      v.vmx["displayName"] = "compute-2"
+      v.memory = "3072"
+      v.cpus = 2
+      # CRITICAL: Enable nested virtualization for KVM
+      v.vmx["vhv.enable"] = "TRUE"
     end
     
-    # Install packages only - identical to compute-1
     compute2.vm.provision "shell", inline: <<-SHELL
       echo "Installing OVS, OVN host, and KVM packages..."
       
-      apt-get install -y \
-        openvswitch-switch \
-        ovn-host
+      # Install OVS and OVN
+      apt-get install -y openvswitch-switch ovn-host
       
+      # Install KVM and libvirt
       apt-get install -y \
         qemu-kvm \
         libvirt-daemon-system \
         libvirt-clients \
         virtinst \
-        cpu-checker
+        virt-manager \
+        cpu-checker \
+        bridge-utils
       
+      # Add vagrant to libvirt group
       usermod -aG libvirt vagrant
       
-      kvm-ok || echo "Warning: KVM may not be available (nested virt)"
+      # Start services
+      systemctl start openvswitch-switch
+      systemctl enable openvswitch-switch
+      systemctl start libvirtd
+      systemctl enable libvirtd
       
-      echo "Packages installed on compute-2"
-      echo "Ready for manual configuration"
+      # Verify KVM
+      echo ""
+      echo "=== Verifying KVM Support ==="
+      if kvm-ok 2>&1 | grep -q "KVM acceleration can be used"; then
+        echo "✅ KVM is working!"
+      else
+        echo "⚠️  KVM check:"
+        kvm-ok
+      fi
+      
+      echo "Compute-2 installation completed"
     SHELL
   end
 
